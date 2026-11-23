@@ -303,13 +303,13 @@
               <option value="">Semua Kelas</option>
             </select>
           </div>
-          <!-- Filter Nama Siswa -->
+          <!-- Filter Nama Siswa (Dropdown dinamis mengikuti Filter Kelas) -->
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Nama Siswa</label>
-            <input type="text" id="filterSiswa" oninput="applyFilters()" placeholder="Ketik nama siswa..." class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber" />
+            <select id="filterSiswa" onchange="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber">
+              <option value="">Semua Siswa</option>
+            </select>
           </div>
-        </div>
-      </div>
 
       <!-- KARTU RINGKASAN & TOTAL POIN BERDASARKAN FILTER -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
