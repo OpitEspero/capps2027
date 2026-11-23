@@ -88,7 +88,7 @@
   <!-- ===================================================================== -->
   <script>
     // GANTI URL DI BAWAH INI DENGAN URL WEB APP (/exec) DARI APPS SCRIPT ANDA
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9QX3JyPJPTgvj7PLXz-4hhUEdS7H8WiuJGT8ZmlG7d00Y8mB1zgPHcO5kRRfW1po0MA/exec";
+    const SCRIPT_URL = "GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT_ANDA";
   </script>
 
   <!-- HEADER TOP BAR -->
@@ -889,19 +889,20 @@
       drawChart("mingguan", "chartMingguan", "line", sortedWeeks, sortedWeeks.map(w => weeklyMap[w]),
         "#6366f1", "Kasus Mingguan");
 
-      // 4. Grafik Bulanan
+      // 4. Grafik Bulanan (Ambil YYYY-MM dengan aman meski format tanggal berupa string Date panjang)
       const namaBulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
       const monthlyMap = {};
       filteredLaporan.forEach(r => {
-        if (r.Tanggal && r.Tanggal.length >= 7) {
-          const ym = r.Tanggal.substring(0, 7);
+        const ym = normalizeYearMonth(r.Tanggal);
+        if (ym) {
           monthlyMap[ym] = (monthlyMap[ym] || 0) + 1;
         }
       });
       const sortedMonths = Object.keys(monthlyMap).sort();
       const monthLabels = sortedMonths.map(ym => {
         const [y, m] = ym.split("-");
-        return `${namaBulan[parseInt(m, 10) - 1]} ${y}`;
+        const idxBulan = parseInt(m, 10) - 1;
+        return `${namaBulan[idxBulan] || m} ${y}`;
       });
       drawChart("bulanan", "chartBulanan", "bar", monthLabels, sortedMonths.map(m => monthlyMap[m]),
         "#10b981", "Kasus Bulanan");
@@ -941,6 +942,24 @@
           }
         }
       });
+    }
+
+    function normalizeYearMonth(rawDate) {
+      if (!rawDate) return "";
+      const str = String(rawDate).trim();
+      // Cek format standar YYYY-MM-DD atau YYYY/MM/DD
+      const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})/);
+      if (isoMatch) {
+        return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}`;
+      }
+      // Fallback jika format berupa string Date (misal: "Mon Nov 23 2026...")
+      const parsed = new Date(str);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, "0");
+        return `${y}-${m}`;
+      }
+      return "";
     }
 
     function getWeekLabel(date) {
