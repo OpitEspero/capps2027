@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090d16" />
-  <title>CaPPS — Catatan Poin Pelanggaran Siswa</title>
+  <title>CaPPS — Sistem Catatan Pelanggaran Siswa</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -88,7 +88,7 @@
   <!-- ===================================================================== -->
   <script>
     // GANTI URL DI BAWAH INI DENGAN URL WEB APP (/exec) DARI APPS SCRIPT ANDA
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9QX3JyPJPTgvj7PLXz-4hhUEdS7H8WiuJGT8ZmlG7d00Y8mB1zgPHcO5kRRfW1po0MA/exec";
+    const SCRIPT_URL = "GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT_ANDA";
   </script>
 
   <!-- HEADER TOP BAR -->
@@ -104,7 +104,7 @@
           <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
             CaPPS DIGITAL
           </h1>
-          <p class="text-[11px] text-slate-400 tracking-wide">Catatan Poin Pelanggaran Siswa</p>
+          <p class="text-[11px] text-slate-400 tracking-wide">Catatan Pelanggaran Siswa</p>
         </div>
       </div>
 
@@ -750,17 +750,51 @@
     function normalizeDateISO(rawDate) {
       if (!rawDate) return "";
       const str = String(rawDate).trim();
-      // Format YYYY-MM-DD atau YYYY/MM/DD
+
+      // 1. Format ISO YYYY-MM-DD atau YYYY/MM/DD
       const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
       if (isoMatch) {
         return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}-${isoMatch[3].padStart(2, "0")}`;
       }
-      // Format DD-MM-YYYY atau DD/MM/YYYY
-      const dmyMatch = str.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
-      if (dmyMatch) {
-        return `${dmyMatch[3]}-${dmyMatch[2].padStart(2, "0")}-${dmyMatch[1].padStart(2, "0")}`;
+
+      // 2. Format DD-MM-YYYY atau MM-DD-YYYY (dengan tanda - atau /)
+      const slashMatch = str.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+      if (slashMatch) {
+        const p1 = parseInt(slashMatch[1], 10);
+        const p2 = parseInt(slashMatch[2], 10);
+        const y = slashMatch[3];
+        // Jika angka pertama > 12 pasti tanggal (DD-MM-YYYY), jika angka kedua > 12 pasti MM-DD-YYYY
+        if (p1 > 12) {
+          return `${y}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
+        } else if (p2 > 12) {
+          return `${y}-${String(p1).padStart(2, "0")}-${String(p2).padStart(2, "0")}`;
+        }
+        return `${y}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
       }
-      // Fallback string Date panjang (misal: "Mon Nov 23 2026...")
+
+      // 3. Format string Date bawaan JS/Apps Script seperti "Mon Nov 23 2026..." atau "Nov 23, 2026"
+      const monthMap = {
+        jan: "01", feb: "02", mar: "03", apr: "04", may: "05", mei: "05",
+        jun: "06", jul: "07", aug: "08", agu: "08", sep: "09",
+        oct: "10", okt: "10", nov: "11", dec: "12", des: "12"
+      };
+      const textMonthMatch = str.match(/\b([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})\b/);
+      if (textMonthMatch) {
+        const mKey = textMonthMatch[1].substring(0, 3).toLowerCase();
+        if (monthMap[mKey]) {
+          return `${textMonthMatch[3]}-${monthMap[mKey]}-${textMonthMatch[2].padStart(2, "0")}`;
+        }
+      }
+      // Format tanggal teks Indonesia/Eropa: "23 Nov 2026" atau "23 November 2026"
+      const dmyTextMatch = str.match(/\b(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})\b/);
+      if (dmyTextMatch) {
+        const mKey = dmyTextMatch[2].substring(0, 3).toLowerCase();
+        if (monthMap[mKey]) {
+          return `${dmyTextMatch[3]}-${monthMap[mKey]}-${dmyTextMatch[1].padStart(2, "0")}`;
+        }
+      }
+
+      // 4. Fallback terakhir new Date()
       const parsed = new Date(str);
       if (!isNaN(parsed.getTime())) {
         const y = parsed.getFullYear();
@@ -768,12 +802,12 @@
         const d = String(parsed.getDate()).padStart(2, "0");
         return `${y}-${m}-${d}`;
       }
-      return str;
+      return "";
     }
 
     function applyFilters() {
-      const tglDari = document.getElementById("filterTglDari").value;
-      const tglSampai = document.getElementById("filterTglSampai").value;
+      const tglDari = normalizeDateISO(document.getElementById("filterTglDari").value);
+      const tglSampai = normalizeDateISO(document.getElementById("filterTglSampai").value);
       const kelas = document.getElementById("filterKelas").value;
       const siswaDipilih = document.getElementById("filterSiswa").value;
 
