@@ -643,46 +643,107 @@
     }
 
     // =========================================================================
-    // KOMPRESI FOTO OTOMATIS (HTML5 CANVAS)
+    // KOMPRESI FOTO HEMAT RAM (ANTI LOW MEMORY DI HP)
     // =========================================================================
-    function handleImageSelect(event) {
+    async function handleImageSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement("canvas");
-          const MAX_WIDTH = 1000;
-          let width = img.width;
-          let height = img.height;
+      const infoEl = document.getElementById("infoKompresi");
+      const previewBox = document.getElementById("previewContainer");
+      const imgPreview = document.getElementById("imgPreview");
 
-          if (width > MAX_WIDTH) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
+      infoEl.textContent = "Memproses & mengompresi foto...";
+      previewBox.classList.remove("hidden");
+
+      const MAX_DIM = 800; // Ukuran maksimal sisi terpanjang (hemat RAM & kuota)
+      const QUALITY = 0.70;
+
+      try {
+        let canvas = document.createElement("canvas");
+        let ctx = canvas.getContext("2d");
+        let width = 0;
+        let height = 0;
+
+        // Gunakan createImageBitmap jika didukung (jauh lebih hemat memori HP dibanding FileReader base64)
+        if (window.createImageBitmap) {
+          let bitmap;
+          try {
+            // Downscale langsung saat decode agar RAM HP tidak penuh oleh foto 12MP-50MP
+            bitmap = await createImageBitmap(file, { resizeWidth: MAX_DIM, resizeQuality: "medium" });
+            width = bitmap.width;
+            height = bitmap.height;
+          } catch (errOpt) {
+            bitmap = await createImageBitmap(file);
+            width = bitmap.width;
+            height = bitmap.height;
+            if (width > MAX_DIM || height > MAX_DIM) {
+              if (width >= height) {
+                height = Math.round((height * MAX_DIM) / width);
+                width = MAX_DIM;
+              } else {
+                width = Math.round((width * MAX_DIM) / height);
+                height = MAX_DIM;
+              }
+            }
           }
 
           canvas.width = width;
           canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
+          ctx.drawImage(bitmap, 0, 0, width, height);
+          bitmap.close(); // Segera bebaskan memori bitmap dari RAM
+        } else {
+          // Fallback menggunakan ObjectURL (lebih ringan dari FileReader DataURL)
+          const objectUrl = URL.createObjectURL(file);
+          await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              width = img.width;
+              height = img.height;
+              if (width > MAX_DIM || height > MAX_DIM) {
+                if (width >= height) {
+                  height = Math.round((height * MAX_DIM) / width);
+                  width = MAX_DIM;
+                } else {
+                  width = Math.round((width * MAX_DIM) / height);
+                  height = MAX_DIM;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              ctx.drawImage(img, 0, 0, width, height);
+              URL.revokeObjectURL(objectUrl); // Bebaskan memori ObjectURL
+              resolve();
+            };
+            img.onerror = (e) => {
+              URL.revokeObjectURL(objectUrl);
+              reject(e);
+            };
+            img.src = objectUrl;
+          });
+        }
 
-          // Kompresi ke JPEG kualitas 75%
-          compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
+        // Hasilkan base64 terkompresi
+        compressedBase64 = canvas.toDataURL("image/jpeg", QUALITY);
+        imgPreview.src = compressedBase64;
 
-          const sizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
-          document.getElementById("imgPreview").src = compressedBase64;
-          document.getElementById("infoKompresi").textContent = `Terkompresi: ~${sizeKB} KB (${width}x${height}px)`;
-          document.getElementById("previewContainer").classList.remove("hidden");
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+        // Kosongkan buffer canvas agar RAM langsung lega
+        canvas.width = 0;
+        canvas.height = 0;
+        canvas = null;
+
+        const sizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
+        infoEl.textContent = `Terkompresi: ~${sizeKB} KB (${width}x${height}px)`;
+      } catch (err) {
+        console.error("Gagal memproses foto:", err);
+        showToast("Memori HP penuh saat memuat foto. Tutup aplikasi lain lalu coba lagi.", "error");
+        clearImage();
+      }
     }
 
     function clearImage() {
       compressedBase64 = "";
+      document.getElementById("imgPreview").src = "";
       document.getElementById("fileCamera").value = "";
       document.getElementById("fileGallery").value = "";
       document.getElementById("previewContainer").classList.add("hidden");
