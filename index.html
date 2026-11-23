@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090d16" />
-  <title>CaPPS — Catatan Poin Pelanggaran Siswa</title>
+  <title>CaPPS — Sistem Catatan Pelanggaran Siswa</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -88,7 +88,7 @@
   <!-- ===================================================================== -->
   <script>
     // GANTI URL DI BAWAH INI DENGAN URL WEB APP (/exec) DARI APPS SCRIPT ANDA
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9QX3JyPJPTgvj7PLXz-4hhUEdS7H8WiuJGT8ZmlG7d00Y8mB1zgPHcO5kRRfW1po0MA/exec";
+    const SCRIPT_URL = "GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT_ANDA";
   </script>
 
   <!-- HEADER TOP BAR -->
@@ -104,7 +104,7 @@
           <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
             CaPPS DIGITAL
           </h1>
-          <p class="text-[11px] text-slate-400 tracking-wide">Catatan Poin Pelanggaran Siswa</p>
+          <p class="text-[11px] text-slate-400 tracking-wide">Catatan Pelanggaran Siswa</p>
         </div>
       </div>
 
@@ -299,7 +299,7 @@
           <!-- Filter Kelas -->
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Kelas</label>
-            <select id="filterKelas" onchange="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber">
+            <select id="filterKelas" onchange="updateFilterSiswaDropdown(); applyFilters();" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber">
               <option value="">Semua Kelas</option>
             </select>
           </div>
@@ -310,6 +310,8 @@
               <option value="">Semua Siswa</option>
             </select>
           </div>
+        </div>
+      </div>
 
       <!-- KARTU RINGKASAN & TOTAL POIN BERDASARKAN FILTER -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -579,9 +581,8 @@
         selKelasInput.innerHTML += `<option value="${kls}">${kls}</option>`;
         selKelasFilter.innerHTML += `<option value="${kls}">${kls}</option>`;
       });
-    }
 
-    // 3. Isi opsi awal Dropdown Filter Siswa
+      // 3. Isi opsi awal Dropdown Filter Siswa
       updateFilterSiswaDropdown();
     }
 
@@ -610,8 +611,8 @@
         selSiswaFilter.value = "";
       }
     }
-    
-    // Cascading Dropdown: Kelas -> Siswa (Menampilkan Nama + NIS 10 digit)
+
+    // Cascading Dropdown Form Input: Kelas -> Siswa (Menampilkan Nama + NIS 10 digit)
     function onKelasChange() {
       const kelasDipilih = document.getElementById("inputKelas").value;
       const selSiswa = document.getElementById("inputSiswa");
@@ -631,7 +632,7 @@
       selSiswa.disabled = false;
     }
 
-    // Cascading Dropdown: Kategori -> Jenis Pelanggaran & Poin
+    // Cascading Dropdown Form Input: Kategori -> Jenis Pelanggaran & Poin
     function onKategoriChange() {
       const kategoriDipilih = document.getElementById("inputKategori").value;
       const selJenis = document.getElementById("inputJenis");
@@ -645,7 +646,7 @@
 
       const aturanFiltered = masterAturan.filter(a => String(a.Kategori).trim().toLowerCase() === kategoriDipilih.toLowerCase());
       selJenis.innerHTML = '<option value="">-- Pilih Jenis Pelanggaran --</option>';
-      aturanFiltered.forEach((a, idx) => {
+      aturanFiltered.forEach((a) => {
         const poin = Number(a.Poin) || 0;
         selJenis.innerHTML += `<option value="${a.Jenis_Pelanggaran}" data-poin="${poin}">${a.Jenis_Pelanggaran} (+${poin} Poin)</option>`;
       });
@@ -672,7 +673,7 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement("canvas");
-          const MAX_WIDTH = 1000; // Resolusi ideal: jelas dibaca, ringan diunggah
+          const MAX_WIDTH = 1000;
           let width = img.width;
           let height = img.height;
 
@@ -689,7 +690,6 @@
           // Kompresi ke JPEG kualitas 75%
           compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
 
-          // Hitung perkiraan ukuran file setelah kompresi
           const sizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
           document.getElementById("imgPreview").src = compressedBase64;
           document.getElementById("infoKompresi").textContent = `Terkompresi: ~${sizeKB} KB (${width}x${height}px)`;
@@ -740,7 +740,6 @@
 
         if (result.status === "success") {
           showToast(`Tersimpan! File: ${result.fileName}`, "success");
-          // Reset form sebagian (biarkan tanggal & nama guru tetap agar mudah jika input beruntun)
           document.getElementById("inputSiswa").value = "";
           document.getElementById("inputKategori").value = "";
           document.getElementById("inputJenis").innerHTML = '<option value="">-- Pilih Kategori Terlebih Dahulu --</option>';
@@ -748,7 +747,6 @@
           document.getElementById("badgePoinPreview").textContent = "+0 Poin";
           clearImage();
 
-          // Refresh data laporan di latar belakang
           fetchAllData(false);
         } else {
           showToast(result.message || "Gagal menyimpan data", "error");
@@ -773,22 +771,21 @@
       const tglSampai = document.getElementById("filterTglSampai").value;
       const bulan = document.getElementById("filterBulan").value;
       const kelas = document.getElementById("filterKelas").value;
-      const siswaQuery = document.getElementById("filterSiswa").value.trim().toLowerCase();
+      const siswaDipilih = document.getElementById("filterSiswa").value;
 
       filteredLaporan = allLaporan.filter(item => {
-        const itemTgl = String(item.Tanggal || ""); // Format YYYY-MM-DD
+        const itemTgl = String(item.Tanggal || "");
         const itemBulan = itemTgl.length >= 7 ? itemTgl.substring(5, 7) : "";
 
         if (tglDari && itemTgl < tglDari) return false;
         if (tglSampai && itemTgl > tglSampai) return false;
         if (bulan && itemBulan !== bulan) return false;
         if (kelas && String(item.Kelas).trim() !== kelas) return false;
-        if (siswaQuery && !String(item.Nama_Siswa).toLowerCase().includes(siswaQuery)) return false;
+        if (siswaDipilih && String(item.Nama_Siswa).trim() !== siswaDipilih) return false;
 
         return true;
       });
 
-      // Urutkan dari tanggal terbaru ke terlama
       filteredLaporan.sort((a, b) => String(b.Tanggal).localeCompare(String(a.Tanggal)));
 
       updateSummaryAndTable();
@@ -800,6 +797,7 @@
       document.getElementById("filterTglSampai").value = "";
       document.getElementById("filterBulan").value = "";
       document.getElementById("filterKelas").value = "";
+      updateFilterSiswaDropdown();
       document.getElementById("filterSiswa").value = "";
       applyFilters();
     }
@@ -809,14 +807,12 @@
       const totalPoin = filteredLaporan.reduce((sum, row) => sum + (Number(row.Poin) || 0), 0);
       const rataPoin = totalKasus > 0 ? (totalPoin / totalKasus).toFixed(1) : 0;
 
-      // Update Kartu Statistik
       document.getElementById("statTotalKasus").textContent = totalKasus;
       document.getElementById("statTotalPoin").textContent = totalPoin;
       document.getElementById("statRataPoin").textContent = rataPoin;
       document.getElementById("labelJumlahBaris").textContent = totalKasus;
       document.getElementById("tableFooterTotalPoin").textContent = totalPoin;
 
-      // Render Tabel
       const tbody = document.getElementById("tableBody");
       if (totalKasus === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Tidak ada data pelanggaran sesuai filter yang dipilih.</td></tr>`;
@@ -880,7 +876,7 @@
       drawChart("harian", "chartHarian", "bar", sortedDays, sortedDays.map(d => dailyMap[d]),
         "#06b6d4", "Kasus Harian");
 
-      // 3. Grafik Mingguan (Kelompok per Minggu dalam Tahun)
+      // 3. Grafik Mingguan
       const weeklyMap = {};
       filteredLaporan.forEach(r => {
         const d = new Date(r.Tanggal);
@@ -898,7 +894,7 @@
       const monthlyMap = {};
       filteredLaporan.forEach(r => {
         if (r.Tanggal && r.Tanggal.length >= 7) {
-          const ym = r.Tanggal.substring(0, 7); // YYYY-MM
+          const ym = r.Tanggal.substring(0, 7);
           monthlyMap[ym] = (monthlyMap[ym] || 0) + 1;
         }
       });
@@ -978,7 +974,6 @@
         "File Bukti": r.Nama_File_Foto
       }));
 
-      // Tambahkan baris Total Poin di akhir
       rows.push({
         "No": "",
         "Tanggal": "",
@@ -1008,7 +1003,6 @@
       const doc = new jsPDF("p", "mm", "a4");
       const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
 
-      // Header Laporan PDF
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.text("LAPORAN CATATAN PELANGGARAN SISWA (CaPPS)", 14, 16);
