@@ -556,7 +556,7 @@
       }
     }
 
-    // Isi Dropdown Guru & Kelas (baik untuk Form Input maupun Filter Laporan)
+    // Isi Dropdown Guru, Kelas, dan Daftar Siswa Awal di Filter
     function populateDropdowns() {
       // 1. Dropdown Guru
       const selGuru = document.getElementById("inputGuru");
@@ -581,6 +581,36 @@
       });
     }
 
+    // 3. Isi opsi awal Dropdown Filter Siswa
+      updateFilterSiswaDropdown();
+    }
+
+    // Perbarui opsi Dropdown Filter Siswa berdasarkan Filter Kelas yang dipilih
+    function updateFilterSiswaDropdown() {
+      const kelasFilter = document.getElementById("filterKelas").value;
+      const selSiswaFilter = document.getElementById("filterSiswa");
+      const nilaiSebelumnya = selSiswaFilter.value;
+
+      const daftarSiswa = kelasFilter
+        ? masterSiswa.filter(s => String(s.Kelas).trim() === kelasFilter)
+        : masterSiswa;
+
+      selSiswaFilter.innerHTML = '<option value="">Semua Siswa</option>';
+      daftarSiswa.forEach(s => {
+        if (s.Nama_Siswa) {
+          const infoTambahan = kelasFilter ? (s.NIS ? ` (${s.NIS})` : "") : ` - ${s.Kelas}`;
+          selSiswaFilter.innerHTML += `<option value="${s.Nama_Siswa}">${s.Nama_Siswa}${infoTambahan}</option>`;
+        }
+      });
+
+      // Pertahankan pilihan siswa jika masih ada dalam daftar kelas tersebut
+      if ([...selSiswaFilter.options].some(opt => opt.value === nilaiSebelumnya)) {
+        selSiswaFilter.value = nilaiSebelumnya;
+      } else {
+        selSiswaFilter.value = "";
+      }
+    }
+    
     // Cascading Dropdown: Kelas -> Siswa (Menampilkan Nama + NIS 10 digit)
     function onKelasChange() {
       const kelasDipilih = document.getElementById("inputKelas").value;
