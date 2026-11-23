@@ -266,7 +266,7 @@
           <button onclick="resetFilters()" class="text-xs text-cyan-400 hover:underline font-medium">Reset Filter</button>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <!-- Tanggal Dari -->
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Dari Tanggal</label>
@@ -276,25 +276,6 @@
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Sampai Tanggal</label>
             <input type="date" id="filterTglSampai" onchange="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber font-mono" />
-          </div>
-          <!-- Filter Bulan -->
-          <div>
-            <label class="block text-[11px] text-slate-400 mb-1">Bulan</label>
-            <select id="filterBulan" onchange="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber">
-              <option value="">Semua Bulan</option>
-              <option value="01">Januari</option>
-              <option value="02">Februari</option>
-              <option value="03">Maret</option>
-              <option value="04">April</option>
-              <option value="05">Mei</option>
-              <option value="06">Juni</option>
-              <option value="07">Juli</option>
-              <option value="08">Agustus</option>
-              <option value="09">September</option>
-              <option value="10">Oktober</option>
-              <option value="11">November</option>
-              <option value="12">Desember</option>
-            </select>
           </div>
           <!-- Filter Kelas -->
           <div>
@@ -766,27 +747,51 @@
     // =========================================================================
     // LOGIKA FILTER, RINGKASAN TOTAL POIN & RENDER TABEL
     // =========================================================================
+    function normalizeDateISO(rawDate) {
+      if (!rawDate) return "";
+      const str = String(rawDate).trim();
+      // Format YYYY-MM-DD atau YYYY/MM/DD
+      const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      if (isoMatch) {
+        return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}-${isoMatch[3].padStart(2, "0")}`;
+      }
+      // Format DD-MM-YYYY atau DD/MM/YYYY
+      const dmyMatch = str.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+      if (dmyMatch) {
+        return `${dmyMatch[3]}-${dmyMatch[2].padStart(2, "0")}-${dmyMatch[1].padStart(2, "0")}`;
+      }
+      // Fallback string Date panjang (misal: "Mon Nov 23 2026...")
+      const parsed = new Date(str);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, "0");
+        const d = String(parsed.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+      return str;
+    }
+
     function applyFilters() {
       const tglDari = document.getElementById("filterTglDari").value;
       const tglSampai = document.getElementById("filterTglSampai").value;
-      const bulan = document.getElementById("filterBulan").value;
       const kelas = document.getElementById("filterKelas").value;
       const siswaDipilih = document.getElementById("filterSiswa").value;
 
-      filteredLaporan = allLaporan.filter(item => {
-        const itemTgl = String(item.Tanggal || "");
-        const itemBulan = itemTgl.length >= 7 ? itemTgl.substring(5, 7) : "";
+      filteredLaporan = allLaporan.map(item => ({
+        ...item,
+        TanggalNormalized: normalizeDateISO(item.Tanggal)
+      })).filter(item => {
+        const itemTgl = item.TanggalNormalized;
 
-        if (tglDari && itemTgl < tglDari) return false;
-        if (tglSampai && itemTgl > tglSampai) return false;
-        if (bulan && itemBulan !== bulan) return false;
+        if (tglDari && (!itemTgl || itemTgl < tglDari)) return false;
+        if (tglSampai && (!itemTgl || itemTgl > tglSampai)) return false;
         if (kelas && String(item.Kelas).trim() !== kelas) return false;
         if (siswaDipilih && String(item.Nama_Siswa).trim() !== siswaDipilih) return false;
 
         return true;
       });
 
-      filteredLaporan.sort((a, b) => String(b.Tanggal).localeCompare(String(a.Tanggal)));
+      filteredLaporan.sort((a, b) => String(b.TanggalNormalized).localeCompare(String(a.TanggalNormalized)));
 
       updateSummaryAndTable();
       renderAllCharts();
@@ -795,7 +800,6 @@
     function resetFilters() {
       document.getElementById("filterTglDari").value = "";
       document.getElementById("filterTglSampai").value = "";
-      document.getElementById("filterBulan").value = "";
       document.getElementById("filterKelas").value = "";
       updateFilterSiswaDropdown();
       document.getElementById("filterSiswa").value = "";
@@ -829,7 +833,7 @@
 
         return `
           <tr class="hover:bg-slate-800/40 transition">
-            <td class="p-3 font-mono text-[11px] text-slate-300 whitespace-nowrap">${row.Tanggal}</td>
+            <td class="p-3 font-mono text-[11px] text-slate-300 whitespace-nowrap">${row.TanggalNormalized || row.Tanggal}</td>
             <td class="p-3 font-semibold text-white">
               ${row.Nama_Siswa}
               <div class="text-[10px] text-slate-400 font-normal">Guru: ${row.Nama_Guru}</div>
@@ -870,7 +874,7 @@
       // 2. Grafik Harian (10 tanggal terakhir dari hasil filter)
       const dailyMap = {};
       filteredLaporan.forEach(r => {
-        dailyMap[r.Tanggal] = (dailyMap[r.Tanggal] || 0) + 1;
+        const tglKey = r.TanggalNormalized || r.Tanggal; dailyMap[tglKey] = (dailyMap[tglKey] || 0) + 1;
       });
       const sortedDays = Object.keys(dailyMap).sort().slice(-10);
       drawChart("harian", "chartHarian", "bar", sortedDays, sortedDays.map(d => dailyMap[d]),
@@ -879,7 +883,7 @@
       // 3. Grafik Mingguan
       const weeklyMap = {};
       filteredLaporan.forEach(r => {
-        const d = new Date(r.Tanggal);
+        const d = new Date(r.TanggalNormalized || r.Tanggal);
         if (!isNaN(d)) {
           const weekLabel = getWeekLabel(d);
           weeklyMap[weekLabel] = (weeklyMap[weekLabel] || 0) + 1;
@@ -983,7 +987,7 @@
       const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
       const rows = filteredLaporan.map((r, i) => ({
         "No": i + 1,
-        "Tanggal": r.Tanggal,
+        "Tanggal": r.TanggalNormalized || r.Tanggal,
         "Nama Siswa": r.Nama_Siswa,
         "Kelas": r.Kelas,
         "Kategori": r.Kategori,
@@ -1034,7 +1038,7 @@
 
       const tableBody = filteredLaporan.map((r, i) => [
         i + 1,
-        r.Tanggal,
+        r.TanggalNormalized || r.Tanggal,
         r.Nama_Siswa,
         r.Kelas,
         r.Kategori,
