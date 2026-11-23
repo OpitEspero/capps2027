@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090d16" />
-  <title>CaPPS — Sistem Catatan Pelanggaran Siswa</title>
+  <title>CaPPS — Catatan Poin Pelanggaran Siswa</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -104,7 +104,7 @@
           <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
             CaPPS DIGITAL
           </h1>
-          <p class="text-[11px] text-slate-400 tracking-wide">Catatan Pelanggaran Siswa</p>
+          <p class="text-[11px] text-slate-400 tracking-wide">Catatan Poin Pelanggaran Siswa</p>
         </div>
       </div>
 
@@ -270,12 +270,12 @@
           <!-- Tanggal Dari -->
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Dari Tanggal</label>
-            <input type="date" id="filterTglDari" onchange="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber font-mono" />
+            <input type="date" id="filterTglDari" onchange="applyFilters()" oninput="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber font-mono" />
           </div>
           <!-- Tanggal Sampai -->
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Sampai Tanggal</label>
-            <input type="date" id="filterTglSampai" onchange="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber font-mono" />
+            <input type="date" id="filterTglSampai" onchange="applyFilters()" oninput="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber font-mono" />
           </div>
           <!-- Filter Kelas -->
           <div>
@@ -772,7 +772,7 @@
         return `${y}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
       }
 
-      // 3. Format string Date bawaan JS/Apps Script seperti "Mon Nov 23 2026..." atau "Nov 23, 2026"
+      // 3. Format string Date bawaan JS/Apps Script seperti "Mon Nov 23 2026...", "Nov 23, 2026", atau terpotong "Mon Nov 23"
       const monthMap = {
         jan: "01", feb: "02", mar: "03", apr: "04", may: "05", mei: "05",
         jun: "06", jul: "07", aug: "08", agu: "08", sep: "09",
@@ -783,6 +783,15 @@
         const mKey = textMonthMatch[1].substring(0, 3).toLowerCase();
         if (monthMap[mKey]) {
           return `${textMonthMatch[3]}-${monthMap[mKey]}-${textMonthMatch[2].padStart(2, "0")}`;
+        }
+      }
+      // Tangani jika terpotong 10 karakter dari Apps Script lama: "Mon Nov 23" (tanpa tahun)
+      const shortDayMonthMatch = str.match(/^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+([A-Za-z]{3})\s+(\d{1,2})$/i);
+      if (shortDayMonthMatch) {
+        const mKey = shortDayMonthMatch[1].toLowerCase();
+        if (monthMap[mKey]) {
+          const fallbackYear = new Date().getFullYear();
+          return `${fallbackYear}-${monthMap[mKey]}-${shortDayMonthMatch[2].padStart(2, "0")}`;
         }
       }
       // Format tanggal teks Indonesia/Eropa: "23 Nov 2026" atau "23 November 2026"
