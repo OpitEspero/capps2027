@@ -1193,15 +1193,37 @@
     // =========================================================================
     // MODAL FOTO & NOTIFIKASI TOAST
     // =========================================================================
-    function openPhotoModal(url, filename) {
-      document.getElementById("modalPhotoTitle").textContent = filename || "Bukti Foto";
-      
-      // Ekstrak ID file Google Drive dan ubah ke format thumbnail agar tidak diblokir
-      let finalUrl = url;
+    async function openPhotoModal(url, filename) {
+      const modal = document.getElementById("photoModal");
+      const titleEl = document.getElementById("modalPhotoTitle");
+      const imgEl = document.getElementById("modalPhotoImg");
+      const linkEl = document.getElementById("modalPhotoLink");
+
+      titleEl.textContent = (filename || "Bukti Foto") + " (Memuat...)";
+      imgEl.src = "";
+      linkEl.href = url;
+      modal.classList.remove("hidden");
+
       const matchId = String(url).match(/[-\w]{25,}/);
-      if (matchId) {
-        finalUrl = `https://drive.google.com/thumbnail?id=${matchId[0]}&sz=w1000`;
+      if (!matchId) {
+        imgEl.src = url;
+        titleEl.textContent = filename || "Bukti Foto";
+        return;
       }
+
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=getPhoto&id=${matchId[0]}`);
+        const data = await res.json();
+        if (data.status === "success" && data.dataUrl) {
+          imgEl.src = data.dataUrl;
+          titleEl.textContent = filename || "Bukti Foto";
+        } else {
+          titleEl.textContent = "Gagal memuat preview foto";
+        }
+      } catch (err) {
+        titleEl.textContent = "Gagal memuat preview foto";
+      }
+    }
 
       document.getElementById("modalPhotoImg").src = finalUrl;
       document.getElementById("modalPhotoLink").href = url;
