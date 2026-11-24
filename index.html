@@ -1168,10 +1168,36 @@
     // =========================================================================
     // MODAL FOTO & NOTIFIKASI TOAST
     // =========================================================================
+    function extractDriveFileId(url) {
+      if (!url) return "";
+      const str = String(url).trim();
+      const idParam = str.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (idParam) return idParam[1];
+      const pathId = str.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (pathId) return pathId[1];
+      return "";
+    }
+
     function openPhotoModal(url, filename) {
+      const imgEl = document.getElementById("modalPhotoImg");
+      const linkEl = document.getElementById("modalPhotoLink");
       document.getElementById("modalPhotoTitle").textContent = filename || "Bukti Foto";
-      document.getElementById("modalPhotoImg").src = url;
-      document.getElementById("modalPhotoLink").href = url;
+
+      const fileId = extractDriveFileId(url);
+      if (fileId) {
+        // Endpoint thumbnail resmi Google Drive yang diizinkan di dalam tag <img>
+        imgEl.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+        // Fallback otomatis jika thumbnail gagal dimuat
+        imgEl.onerror = function () {
+          this.onerror = null;
+          this.src = `https://lh3.googleusercontent.com/d/${fileId}=w1000`;
+        };
+        linkEl.href = `https://drive.google.com/file/d/${fileId}/view`;
+      } else {
+        imgEl.src = url;
+        linkEl.href = url;
+      }
+
       document.getElementById("photoModal").classList.remove("hidden");
     }
 
