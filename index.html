@@ -1190,7 +1190,7 @@
       unduhViaAppsScript(fileName, mimeType, pdfBase64);
     }
 
-    // =========================================================================
+// =========================================================================
     // MODAL FOTO & NOTIFIKASI TOAST
     // =========================================================================
     async function openPhotoModal(url, filename) {
@@ -1223,11 +1223,6 @@
       } catch (err) {
         titleEl.textContent = "Gagal memuat preview foto";
       }
-    }
-
-      document.getElementById("modalPhotoImg").src = finalUrl;
-      document.getElementById("modalPhotoLink").href = url;
-      document.getElementById("photoModal").classList.remove("hidden");
     }
 
     function closePhotoModal() {
