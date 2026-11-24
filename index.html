@@ -389,7 +389,7 @@
                 <th class="p-3 font-semibold">Kelas</th>
                 <th class="p-3 font-semibold">Kategori & Pelanggaran</th>
                 <th class="p-3 font-semibold text-center">Poin</th>
-                <th class="p-3 font-semibold text-center">Bukti</th>
+                <th class="p-3 font-semibold text-center">Aksi</th>
               </tr>
             </thead>
             <tbody id="tableBody" class="divide-y divide-slate-800/70">
@@ -404,6 +404,61 @@
                 <td></td>
               </tr>
             </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- HALAMAN 3: KELOLA & EDIT DATA MASTER (GURU, SISWA, ATURAN)          -->
+    <!-- =================================================================== -->
+    <section id="pageMaster" class="hidden space-y-5">
+      <div class="glass-card rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-5 rounded-full bg-indigo-400 inline-block"></span>
+              Kelola & Edit Data Master
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Edit atau tambah data Aturan Poin, Siswa, dan Guru secara langsung</p>
+          </div>
+
+          <button onclick="exportMasterToExcel()" class="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>Unduh Backup Excel</span>
+          </button>
+        </div>
+
+        <!-- Sub-Tab Pilihan Master -->
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <button onclick="switchMasterSubTab('aturan')" id="subTabAturan" class="py-2 px-3 rounded-xl text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 transition">
+            Aturan (<span id="countMasterAturan">0</span>)
+          </button>
+          <button onclick="switchMasterSubTab('siswa')" id="subTabSiswa" class="py-2 px-3 rounded-xl text-xs font-bold bg-slate-900/70 text-slate-400 border border-slate-800 hover:text-slate-200 transition">
+            Siswa (<span id="countMasterSiswa">0</span>)
+          </button>
+          <button onclick="switchMasterSubTab('guru')" id="subTabGuru" class="py-2 px-3 rounded-xl text-xs font-bold bg-slate-900/70 text-slate-400 border border-slate-800 hover:text-slate-200 transition">
+            Guru (<span id="countMasterGuru">0</span>)
+          </button>
+        </div>
+
+        <!-- Pencarian & Tombol Tambah Item Master -->
+        <div class="flex flex-col sm:flex-row gap-2.5 mb-4">
+          <input type="text" id="searchMasterInput" oninput="renderMasterTable()" placeholder="Cari nama, kelas, kategori, atau jenis pelanggaran..." class="flex-1 rounded-xl px-3.5 py-2 text-xs input-cyber" />
+          <button onclick="openMasterFormModal(-1)" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg transition active:scale-95 shrink-0">
+            <span>+ Tambah Baru</span>
+          </button>
+        </div>
+
+        <!-- Tabel Data Master -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-[55vh]">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead id="masterTableHead" class="sticky top-0 bg-slate-900 text-slate-300 border-b border-slate-800 z-10">
+            </thead>
+            <tbody id="masterTableBody" class="divide-y divide-slate-800/70">
+            </tbody>
           </table>
         </div>
       </div>
@@ -436,8 +491,8 @@
         </svg>
       </div>
       <div>
-        <h3 class="text-lg font-extrabold text-white">Data Masuk ke Server!</h3>
-        <p class="text-xs text-slate-400 mt-1">Catatan pelanggaran siswa berhasil disimpan ke database.</p>
+        <h3 class="text-lg font-extrabold text-white">Data Masuk ke Spreadsheet!</h3>
+        <p class="text-xs text-slate-400 mt-1">Catatan pelanggaran siswa berhasil disimpan ke database sekolah.</p>
       </div>
       <div id="successModalDetail" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-left text-xs space-y-1.5 font-mono text-slate-300">
       </div>
@@ -447,12 +502,102 @@
     </div>
   </div>
 
+  <!-- MODAL EDIT TRANSAKSI PELANGGARAN (LAPORAN) -->
+  <div id="editLaporanModal" onclick="closeEditLaporanModal()" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="glass-card rounded-2xl max-w-md w-full p-5 space-y-4 border border-cyan-500/40 my-auto">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div>
+          <h3 class="text-sm font-bold text-white">Edit Catatan Pelanggaran</h3>
+          <p id="editLapIdLabel" class="text-[11px] font-mono text-cyan-400">ID: -</p>
+        </div>
+        <button onclick="closeEditLaporanModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1">✕</button>
+      </div>
+
+      <form id="formEditLaporan" class="space-y-3">
+        <input type="hidden" id="editLapId" />
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Tanggal Kejadian</label>
+          <input type="date" id="editLapTanggal" required class="w-full rounded-xl px-3 py-2 text-xs input-cyber font-mono" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Guru Pencatat</label>
+          <select id="editLapGuru" required class="w-full rounded-xl px-3 py-2 text-xs input-cyber"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Kelas</label>
+            <select id="editLapKelas" required onchange="onEditLapKelasChange()" class="w-full rounded-xl px-3 py-2 text-xs input-cyber"></select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nama Siswa</label>
+            <select id="editLapSiswa" required class="w-full rounded-xl px-3 py-2 text-xs input-cyber"></select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Kategori Pelanggaran</label>
+          <select id="editLapKategori" required onchange="onEditLapKategoriChange()" class="w-full rounded-xl px-3 py-2 text-xs input-cyber">
+            <option value="Kelakuan">Kelakuan</option>
+            <option value="Kerajinan & Pembiasaan">Kerajinan & Pembiasaan</option>
+            <option value="Kerapian">Kerapian</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Jenis Pelanggaran</label>
+          <select id="editLapJenis" required onchange="onEditLapJenisChange()" class="w-full rounded-xl px-3 py-2 text-xs input-cyber"></select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Poin Pelanggaran</label>
+          <input type="number" id="editLapPoin" required min="0" class="w-full rounded-xl px-3 py-2 text-xs input-cyber font-mono font-bold text-rose-400" />
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="closeEditLaporanModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">
+            Batal
+          </button>
+          <button type="submit" id="btnSaveEditLap" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white text-xs font-bold shadow-lg transition">
+            Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL TAMBAH / EDIT ITEM DATA MASTER (ATURAN / SISWA / GURU) -->
+  <div id="masterFormModal" onclick="closeMasterFormModal()" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="glass-card rounded-2xl max-w-md w-full p-5 space-y-4 border border-indigo-500/40">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 id="masterFormTitle" class="text-sm font-bold text-white">Edit Data Master</h3>
+        <button onclick="closeMasterFormModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1">✕</button>
+      </div>
+
+      <form id="formMasterItem" class="space-y-3">
+        <input type="hidden" id="masterEditIndex" value="-1" />
+        <div id="masterFormFields" class="space-y-3"></div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="closeMasterFormModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">
+            Batal
+          </button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-600 hover:from-indigo-400 hover:to-cyan-500 text-white text-xs font-bold shadow-lg transition">
+            Simpan Master
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- TOAST NOTIFICATION -->
   <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl text-xs font-semibold shadow-2xl border transition-all duration-300"></div>
 
-  <!-- BOTTOM NAVIGATION BAR (ALA APLIKASI ANDROID) -->
-  <nav class="fixed bottom-0 inset-x-0 z-40 glass-card border-t border-cyan-500/20 px-4 py-2">
-    <div class="max-w-md mx-auto grid grid-cols-2 gap-2">
+  <!-- BOTTOM NAVIGATION BAR (3 TAB: INPUT, LAPORAN, DATA MASTER) -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 glass-card border-t border-cyan-500/20 px-3 py-2">
+    <div class="max-w-lg mx-auto grid grid-cols-3 gap-1.5">
       <button onclick="switchTab('input')" id="navInput" class="flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition">
         <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -464,7 +609,14 @@
         <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
-        <span class="text-[11px] font-bold">Laporan & Grafik</span>
+        <span class="text-[11px] font-bold">Laporan & Edit</span>
+      </button>
+
+      <button onclick="switchTab('master')" id="navMaster" class="flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition">
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+        </svg>
+        <span class="text-[11px] font-bold">Data Master</span>
       </button>
     </div>
   </nav>
@@ -480,42 +632,54 @@
     let allLaporan = [];
     let filteredLaporan = [];
     let compressedBase64 = "";
+    let currentMasterSubTab = "aturan";
 
     // Instance Grafik Chart.js
     let charts = { kategori: null, harian: null, mingguan: null, bulanan: null };
 
-    // Inisialisasi saat halaman dimuat (Loading Instan dari Cache Lokal / Impor Excel)
+    // Inisialisasi saat halaman dimuat
     document.addEventListener("DOMContentLoaded", () => {
       const today = new Date().toISOString().split("T")[0];
       document.getElementById("inputTanggal").value = today;
 
       const hasMaster = loadFromLocalCache();
       if (!hasMaster) {
-        // Hanya sinkron otomatis di awal jika belum ada data master di memori HP
         fetchAllData(false);
       }
     });
 
-    // Navigasi Tab
+    // Navigasi 3 Tab Utama
     function switchTab(tab) {
-      const pageInput = document.getElementById("pageInput");
-      const pageLaporan = document.getElementById("pageLaporan");
-      const navInput = document.getElementById("navInput");
-      const navLaporan = document.getElementById("navLaporan");
+      const pages = {
+        input: document.getElementById("pageInput"),
+        laporan: document.getElementById("pageLaporan"),
+        master: document.getElementById("pageMaster")
+      };
+      const navs = {
+        input: document.getElementById("navInput"),
+        laporan: document.getElementById("navLaporan"),
+        master: document.getElementById("navMaster")
+      };
 
-      if (tab === "input") {
-        pageInput.classList.remove("hidden");
-        pageLaporan.classList.add("hidden");
-        navInput.className = "flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition";
-        navLaporan.className = "flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition";
-      } else {
-        pageInput.classList.add("hidden");
-        pageLaporan.classList.remove("hidden");
-        navLaporan.className = "flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition";
-        navInput.className = "flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition";
+      const activeClass = "flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition";
+      const inactiveClass = "flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition";
+
+      Object.keys(pages).forEach(key => {
+        if (key === tab) {
+          pages[key].classList.remove("hidden");
+          navs[key].className = activeClass;
+        } else {
+          pages[key].classList.add("hidden");
+          navs[key].className = inactiveClass;
+        }
+      });
+
+      if (tab === "laporan") {
         applyFilters();
-        // Tarik data laporan terbaru dari server secara latar belakang saat tab Laporan dibuka
         fetchAllData(false);
+      } else if (tab === "master") {
+        updateMasterCounts();
+        renderMasterTable();
       }
     }
 
@@ -533,7 +697,6 @@
         if (cachedAturan) masterAturan = JSON.parse(cachedAturan);
         if (cachedLaporan) allLaporan = JSON.parse(cachedLaporan);
 
-        // Fallback migrasi jika masih menggunakan key cache versi lama
         if (masterGuru.length === 0 && masterSiswa.length === 0) {
           const oldCache = localStorage.getItem("capps_cache_v1");
           if (oldCache) {
@@ -552,6 +715,7 @@
 
         populateDropdowns();
         applyFilters();
+        updateMasterCounts();
       } catch (e) {
         console.warn("Cache lokal tidak valid:", e);
       }
@@ -563,10 +727,20 @@
       if (infoEl && (masterGuru.length > 0 || masterSiswa.length > 0)) {
         infoEl.textContent = `Master lokal aktif: ${masterGuru.length} Guru • ${masterSiswa.length} Siswa • ${masterAturan.length} Aturan`;
       }
+      updateMasterCounts();
+    }
+
+    function updateMasterCounts() {
+      const cAturan = document.getElementById("countMasterAturan");
+      const cSiswa = document.getElementById("countMasterSiswa");
+      const cGuru = document.getElementById("countMasterGuru");
+      if (cAturan) cAturan.textContent = masterAturan.length;
+      if (cSiswa) cSiswa.textContent = masterSiswa.length;
+      if (cGuru) cGuru.textContent = masterGuru.length;
     }
 
     // =========================================================================
-    // IMPOR DATA MASTER (Master_Guru, Master_Siswa, Master_Aturan) DARI EXCEL
+    // IMPOR & BACKUP DATA MASTER (Master_Guru, Master_Siswa, Master_Aturan)
     // =========================================================================
     function handleImportMaster(event) {
       const file = event.target.files[0];
@@ -580,7 +754,6 @@
 
           let importedSheets = [];
 
-          // 1. Baca Sheet Master_Guru
           if (workbook.Sheets["Master_Guru"]) {
             const rawGuru = XLSX.utils.sheet_to_json(workbook.Sheets["Master_Guru"], { defval: "" });
             const validGuru = rawGuru.filter(g => String(g.Nama_Guru || "").trim() !== "");
@@ -594,7 +767,6 @@
             }
           }
 
-          // 2. Baca Sheet Master_Siswa (Pertahankan NIS 10 digit)
           if (workbook.Sheets["Master_Siswa"]) {
             const rawSiswa = XLSX.utils.sheet_to_json(workbook.Sheets["Master_Siswa"], { defval: "" });
             const validSiswa = rawSiswa.filter(s => String(s.Nama_Siswa || "").trim() !== "");
@@ -609,7 +781,6 @@
             }
           }
 
-          // 3. Baca Sheet Master_Aturan
           if (workbook.Sheets["Master_Aturan"]) {
             const rawAturan = XLSX.utils.sheet_to_json(workbook.Sheets["Master_Aturan"], { defval: "" });
             const validAturan = rawAturan.filter(a => String(a.Jenis_Pelanggaran || "").trim() !== "");
@@ -627,6 +798,7 @@
           if (importedSheets.length > 0) {
             populateDropdowns();
             updateMasterStatusLabel();
+            renderMasterTable();
             showToast(`Impor berhasil (${importedSheets.join(", ")})!`, "success");
           } else {
             showToast("Sheet Master_Guru, Master_Siswa, atau Master_Aturan tidak ditemukan / kosong.", "error");
@@ -641,7 +813,247 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // Ambil Data dari Google Apps Script (doGet)
+    function exportMasterToExcel() {
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(masterGuru.length ? masterGuru : [{ Nama_Guru: "", Jabatan_Mapel: "" }]), "Master_Guru");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(masterSiswa.length ? masterSiswa : [{ Kelas: "", Nama_Siswa: "", NIS: "" }]), "Master_Siswa");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(masterAturan.length ? masterAturan : [{ Kategori: "", Jenis_Pelanggaran: "", Poin: 0 }]), "Master_Aturan");
+
+      const fileName = `Backup_Master_CaPPS_${new Date().toISOString().slice(0,10)}.xlsx`;
+      const base64Str = XLSX.write(wb, { bookType: "xlsx", type: "base64" });
+      const mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      unduhViaAppsScript(fileName, mimeType, base64Str);
+    }
+
+    // =========================================================================
+    // HALAMAN KELOLA & EDIT DATA MASTER (ATURAN, SISWA, GURU)
+    // =========================================================================
+    function switchMasterSubTab(sub) {
+      currentMasterSubTab = sub;
+      const tabs = {
+        aturan: document.getElementById("subTabAturan"),
+        siswa: document.getElementById("subTabSiswa"),
+        guru: document.getElementById("subTabGuru")
+      };
+      const activeCls = "py-2 px-3 rounded-xl text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 transition";
+      const inactiveCls = "py-2 px-3 rounded-xl text-xs font-bold bg-slate-900/70 text-slate-400 border border-slate-800 hover:text-slate-200 transition";
+
+      Object.keys(tabs).forEach(k => {
+        tabs[k].className = k === sub ? activeCls : inactiveCls;
+      });
+      document.getElementById("searchMasterInput").value = "";
+      renderMasterTable();
+    }
+
+    function renderMasterTable() {
+      const keyword = (document.getElementById("searchMasterInput")?.value || "").toLowerCase().trim();
+      const thead = document.getElementById("masterTableHead");
+      const tbody = document.getElementById("masterTableBody");
+
+      if (currentMasterSubTab === "aturan") {
+        thead.innerHTML = `
+          <tr>
+            <th class="p-3 font-semibold">Kategori</th>
+            <th class="p-3 font-semibold">Jenis Pelanggaran</th>
+            <th class="p-3 font-semibold text-center">Poin</th>
+            <th class="p-3 font-semibold text-center">Aksi</th>
+          </tr>`;
+        const rows = masterAturan
+          .map((item, idx) => ({ ...item, _idx: idx }))
+          .filter(r => !keyword || r.Kategori.toLowerCase().includes(keyword) || r.Jenis_Pelanggaran.toLowerCase().includes(keyword));
+
+        if (rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-500">Data aturan tidak ditemukan.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = rows.map(r => `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="p-3 text-cyan-300 font-semibold whitespace-nowrap">${r.Kategori}</td>
+            <td class="p-3 text-slate-200">${r.Jenis_Pelanggaran}</td>
+            <td class="p-3 text-center font-mono font-bold text-rose-400">+${r.Poin}</td>
+            <td class="p-3 text-center whitespace-nowrap space-x-1">
+              <button onclick="openMasterFormModal(${r._idx})" class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 text-[11px] font-semibold">Edit</button>
+              <button onclick="deleteMasterItem(${r._idx})" class="px-2 py-1 rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 text-[11px] font-semibold">Hapus</button>
+            </td>
+          </tr>`).join("");
+      } else if (currentMasterSubTab === "siswa") {
+        thead.innerHTML = `
+          <tr>
+            <th class="p-3 font-semibold">Kelas</th>
+            <th class="p-3 font-semibold">Nama Siswa</th>
+            <th class="p-3 font-semibold">NIS</th>
+            <th class="p-3 font-semibold text-center">Aksi</th>
+          </tr>`;
+        const rows = masterSiswa
+          .map((item, idx) => ({ ...item, _idx: idx }))
+          .filter(r => !keyword || r.Kelas.toLowerCase().includes(keyword) || r.Nama_Siswa.toLowerCase().includes(keyword) || String(r.NIS).includes(keyword));
+
+        if (rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-500">Data siswa tidak ditemukan.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = rows.map(r => `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="p-3 font-mono text-cyan-300 whitespace-nowrap">${r.Kelas}</td>
+            <td class="p-3 text-white font-semibold">${r.Nama_Siswa}</td>
+            <td class="p-3 font-mono text-slate-400">${r.NIS || "-"}</td>
+            <td class="p-3 text-center whitespace-nowrap space-x-1">
+              <button onclick="openMasterFormModal(${r._idx})" class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 text-[11px] font-semibold">Edit</button>
+              <button onclick="deleteMasterItem(${r._idx})" class="px-2 py-1 rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 text-[11px] font-semibold">Hapus</button>
+            </td>
+          </tr>`).join("");
+      } else {
+        thead.innerHTML = `
+          <tr>
+            <th class="p-3 font-semibold">Nama Guru</th>
+            <th class="p-3 font-semibold">Jabatan / Mapel</th>
+            <th class="p-3 font-semibold text-center">Aksi</th>
+          </tr>`;
+        const rows = masterGuru
+          .map((item, idx) => ({ ...item, _idx: idx }))
+          .filter(r => !keyword || r.Nama_Guru.toLowerCase().includes(keyword) || (r.Jabatan_Mapel || "").toLowerCase().includes(keyword));
+
+        if (rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-500">Data guru tidak ditemukan.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = rows.map(r => `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="p-3 text-white font-semibold">${r.Nama_Guru}</td>
+            <td class="p-3 text-slate-300">${r.Jabatan_Mapel || "-"}</td>
+            <td class="p-3 text-center whitespace-nowrap space-x-1">
+              <button onclick="openMasterFormModal(${r._idx})" class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 text-[11px] font-semibold">Edit</button>
+              <button onclick="deleteMasterItem(${r._idx})" class="px-2 py-1 rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 text-[11px] font-semibold">Hapus</button>
+            </td>
+          </tr>`).join("");
+      }
+    }
+
+    function openMasterFormModal(index) {
+      document.getElementById("masterEditIndex").value = index;
+      const fieldsBox = document.getElementById("masterFormFields");
+      const titleEl = document.getElementById("masterFormTitle");
+      const isEdit = index >= 0;
+
+      if (currentMasterSubTab === "aturan") {
+        const item = isEdit ? masterAturan[index] : { Kategori: "Kelakuan", Jenis_Pelanggaran: "", Poin: 5 };
+        titleEl.textContent = isEdit ? "Edit Jenis & Poin Pelanggaran" : "Tambah Aturan Pelanggaran";
+        fieldsBox.innerHTML = `
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Kategori</label>
+            <select id="mFieldKategori" required class="w-full rounded-xl px-3 py-2 text-xs input-cyber">
+              <option value="Kelakuan" ${item.Kategori === "Kelakuan" ? "selected" : ""}>Kelakuan</option>
+              <option value="Kerajinan & Pembiasaan" ${item.Kategori === "Kerajinan & Pembiasaan" ? "selected" : ""}>Kerajinan & Pembiasaan</option>
+              <option value="Kerapian" ${item.Kategori === "Kerapian" ? "selected" : ""}>Kerapian</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Jenis Pelanggaran</label>
+            <input type="text" id="mFieldJenis" value="${String(item.Jenis_Pelanggaran).replace(/"/g, '&quot;')}" required class="w-full rounded-xl px-3 py-2 text-xs input-cyber" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Poin</label>
+            <input type="number" id="mFieldPoin" value="${item.Poin}" required min="0" class="w-full rounded-xl px-3 py-2 text-xs input-cyber font-mono" />
+          </div>`;
+      } else if (currentMasterSubTab === "siswa") {
+        const item = isEdit ? masterSiswa[index] : { Kelas: "", Nama_Siswa: "", NIS: "" };
+        titleEl.textContent = isEdit ? "Edit Data Siswa" : "Tambah Siswa Baru";
+        fieldsBox.innerHTML = `
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Kelas (contoh: 7A)</label>
+            <input type="text" id="mFieldKelas" value="${String(item.Kelas).replace(/"/g, '&quot;')}" required class="w-full rounded-xl px-3 py-2 text-xs input-cyber font-mono" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nama Siswa</label>
+            <input type="text" id="mFieldNamaSiswa" value="${String(item.Nama_Siswa).replace(/"/g, '&quot;')}" required class="w-full rounded-xl px-3 py-2 text-xs input-cyber" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">NIS (10 Digit)</label>
+            <input type="text" id="mFieldNIS" value="${String(item.NIS || "").replace(/"/g, '&quot;')}" class="w-full rounded-xl px-3 py-2 text-xs input-cyber font-mono" />
+          </div>`;
+      } else {
+        const item = isEdit ? masterGuru[index] : { Nama_Guru: "", Jabatan_Mapel: "" };
+        titleEl.textContent = isEdit ? "Edit Data Guru" : "Tambah Guru Baru";
+        fieldsBox.innerHTML = `
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nama Guru (beserta gelar)</label>
+            <input type="text" id="mFieldNamaGuru" value="${String(item.Nama_Guru).replace(/"/g, '&quot;')}" required class="w-full rounded-xl px-3 py-2 text-xs input-cyber" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Jabatan / Mapel</label>
+            <input type="text" id="mFieldJabatan" value="${String(item.Jabatan_Mapel || "").replace(/"/g, '&quot;')}" class="w-full rounded-xl px-3 py-2 text-xs input-cyber" />
+          </div>`;
+      }
+
+      document.getElementById("masterFormModal").classList.remove("hidden");
+    }
+
+    function closeMasterFormModal() {
+      document.getElementById("masterFormModal").classList.add("hidden");
+    }
+
+    document.getElementById("formMasterItem").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const idx = parseInt(document.getElementById("masterEditIndex").value, 10);
+
+      if (currentMasterSubTab === "aturan") {
+        const obj = {
+          Kategori: document.getElementById("mFieldKategori").value.trim(),
+          Jenis_Pelanggaran: document.getElementById("mFieldJenis").value.trim(),
+          Poin: Number(document.getElementById("mFieldPoin").value) || 0
+        };
+        if (idx >= 0) masterAturan[idx] = obj;
+        else masterAturan.push(obj);
+        localStorage.setItem("capps_master_aturan", JSON.stringify(masterAturan));
+      } else if (currentMasterSubTab === "siswa") {
+        const rawNis = document.getElementById("mFieldNIS").value.trim();
+        const obj = {
+          Kelas: document.getElementById("mFieldKelas").value.trim(),
+          Nama_Siswa: document.getElementById("mFieldNamaSiswa").value.trim(),
+          NIS: rawNis ? rawNis.padStart(10, "0") : ""
+        };
+        if (idx >= 0) masterSiswa[idx] = obj;
+        else masterSiswa.push(obj);
+        localStorage.setItem("capps_master_siswa", JSON.stringify(masterSiswa));
+      } else {
+        const obj = {
+          Nama_Guru: document.getElementById("mFieldNamaGuru").value.trim(),
+          Jabatan_Mapel: document.getElementById("mFieldJabatan").value.trim()
+        };
+        if (idx >= 0) masterGuru[idx] = obj;
+        else masterGuru.push(obj);
+        localStorage.setItem("capps_master_guru", JSON.stringify(masterGuru));
+      }
+
+      populateDropdowns();
+      onKategoriChange();
+      updateMasterStatusLabel();
+      renderMasterTable();
+      closeMasterFormModal();
+      showToast("Data master berhasil diperbarui!", "success");
+    });
+
+    function deleteMasterItem(index) {
+      if (!confirm("Hapus item ini dari data master lokal?")) return;
+      if (currentMasterSubTab === "aturan") {
+        masterAturan.splice(index, 1);
+        localStorage.setItem("capps_master_aturan", JSON.stringify(masterAturan));
+      } else if (currentMasterSubTab === "siswa") {
+        masterSiswa.splice(index, 1);
+        localStorage.setItem("capps_master_siswa", JSON.stringify(masterSiswa));
+      } else {
+        masterGuru.splice(index, 1);
+        localStorage.setItem("capps_master_guru", JSON.stringify(masterGuru));
+      }
+      populateDropdowns();
+      updateMasterStatusLabel();
+      renderMasterTable();
+      showToast("Item master dihapus.", "success");
+    }
+
+    // =========================================================================
+    // AMBIL DATA DARI GOOGLE APPS SCRIPT (doGet)
+    // =========================================================================
     async function fetchAllData(showNotif = false) {
       if (!SCRIPT_URL || SCRIPT_URL.includes("GANTI_DENGAN")) {
         showToast("Harap masukkan URL Web App Apps Script di kode index.html!", "error");
@@ -668,15 +1080,16 @@
         }
 
         if (data.status === "success") {
-          if (data.master?.guru?.length) {
+          // Isi master dari server hanya jika lokal masih kosong
+          if (masterGuru.length === 0 && data.master?.guru?.length) {
             masterGuru = data.master.guru;
             localStorage.setItem("capps_master_guru", JSON.stringify(masterGuru));
           }
-          if (data.master?.siswa?.length) {
+          if (masterSiswa.length === 0 && data.master?.siswa?.length) {
             masterSiswa = data.master.siswa;
             localStorage.setItem("capps_master_siswa", JSON.stringify(masterSiswa));
           }
-          if (data.master?.aturan?.length) {
+          if (masterAturan.length === 0 && data.master?.aturan?.length) {
             masterAturan = data.master.aturan;
             localStorage.setItem("capps_master_aturan", JSON.stringify(masterAturan));
           }
@@ -732,7 +1145,6 @@
       updateFilterSiswaDropdown();
     }
 
-    // Perbarui opsi Dropdown Filter Siswa berdasarkan Filter Kelas yang dipilih
     function updateFilterSiswaDropdown() {
       const kelasFilter = document.getElementById("filterKelas").value;
       const selSiswaFilter = document.getElementById("filterSiswa");
@@ -757,7 +1169,6 @@
       }
     }
 
-    // Cascading Dropdown Form Input: Kelas -> Siswa
     function onKelasChange() {
       const kelasDipilih = document.getElementById("inputKelas").value;
       const selSiswa = document.getElementById("inputSiswa");
@@ -777,7 +1188,6 @@
       selSiswa.disabled = false;
     }
 
-    // Cascading Dropdown Form Input: Kategori -> Jenis Pelanggaran & Poin
     function onKategoriChange() {
       const kategoriDipilih = document.getElementById("inputKategori").value;
       const selJenis = document.getElementById("inputJenis");
@@ -968,7 +1378,7 @@
     });
 
     // =========================================================================
-    // LOGIKA FILTER, RINGKASAN TOTAL POIN & RENDER TABEL
+    // LOGIKA FILTER, RINGKASAN TOTAL POIN & RENDER TABEL LAPORAN
     // =========================================================================
     function normalizeDateISO(rawDate) {
       if (!rawDate) return "";
@@ -997,7 +1407,7 @@
         jun: "06", jul: "07", aug: "08", agu: "08", sep: "09",
         oct: "10", okt: "10", nov: "11", dec: "12", des: "12"
       };
-      const textMonthMatch = str.match(/ ([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4}) /);
+      const textMonthMatch = str.match(/([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})/);
       if (textMonthMatch) {
         const mKey = textMonthMatch[1].substring(0, 3).toLowerCase();
         if (monthMap[mKey]) {
@@ -1012,7 +1422,7 @@
           return `${fallbackYear}-${monthMap[mKey]}-${shortDayMonthMatch[2].padStart(2, "0")}`;
         }
       }
-      const dmyTextMatch = str.match(/ (\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4}) /);
+      const dmyTextMatch = str.match(/(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})/);
       if (dmyTextMatch) {
         const mKey = dmyTextMatch[2].substring(0, 3).toLowerCase();
         if (monthMap[mKey]) {
@@ -1082,7 +1492,7 @@
         return;
       }
 
-      tbody.innerHTML = filteredLaporan.map(row => {
+      tbody.innerHTML = filteredLaporan.map((row, idx) => {
         const hasPhoto = row.Link_Foto_Drive && row.Link_Foto_Drive !== "-";
         const badgeColor = row.Kategori === "Kelakuan"
           ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
@@ -1103,15 +1513,172 @@
               <div class="text-slate-200">${row.Jenis_Pelanggaran}</div>
             </td>
             <td class="p-3 text-center font-mono font-bold text-rose-400">+${row.Poin}</td>
-            <td class="p-3 text-center">
+            <td class="p-3 text-center whitespace-nowrap space-x-1">
+              <button onclick="openEditLaporanModal(${idx})" class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 text-[11px] font-semibold">Edit</button>
               ${hasPhoto
-                ? `<button onclick="openPhotoModal('${row.Link_Foto_Drive}', '${row.Nama_File_Foto}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 text-[11px] font-semibold">Lihat</button>`
-                : `<span class="text-slate-600 text-[11px]">-</span>`}
+                ? `<button onclick="openPhotoModal('${row.Link_Foto_Drive}', '${row.Nama_File_Foto}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 text-[11px] font-semibold">Foto</button>`
+                : ``}
             </td>
           </tr>
         `;
       }).join("");
     }
+
+    // =========================================================================
+    // FITUR EDIT CATATAN PELANGGARAN (LAPORAN) -> SINKRON KE SPREADSHEET
+    // =========================================================================
+    function openEditLaporanModal(filteredIdx) {
+      const row = filteredLaporan[filteredIdx];
+      if (!row) return;
+
+      document.getElementById("editLapId").value = row.ID_Transaksi || "";
+      document.getElementById("editLapIdLabel").textContent = `ID: ${row.ID_Transaksi || "-"}`;
+      document.getElementById("editLapTanggal").value = row.TanggalNormalized || normalizeDateISO(row.Tanggal);
+
+      // Isi dropdown Guru
+      const selGuru = document.getElementById("editLapGuru");
+      selGuru.innerHTML = masterGuru.map(g => `<option value="${g.Nama_Guru}">${g.Nama_Guru}</option>`).join("");
+      if (![...selGuru.options].some(o => o.value === row.Nama_Guru) && row.Nama_Guru) {
+        selGuru.innerHTML += `<option value="${row.Nama_Guru}">${row.Nama_Guru}</option>`;
+      }
+      selGuru.value = row.Nama_Guru || "";
+
+      // Isi dropdown Kelas
+      const kelasUnik = [...new Set(masterSiswa.map(s => String(s.Kelas).trim()).filter(Boolean))].sort();
+      const selKelas = document.getElementById("editLapKelas");
+      selKelas.innerHTML = kelasUnik.map(k => `<option value="${k}">${k}</option>`).join("");
+      if (!kelasUnik.includes(String(row.Kelas).trim()) && row.Kelas) {
+        selKelas.innerHTML += `<option value="${row.Kelas}">${row.Kelas}</option>`;
+      }
+      selKelas.value = String(row.Kelas).trim();
+
+      onEditLapKelasChange(row.Nama_Siswa);
+
+      // Kategori & Jenis
+      const selKat = document.getElementById("editLapKategori");
+      selKat.value = row.Kategori || "Kelakuan";
+      onEditLapKategoriChange(row.Jenis_Pelanggaran, row.Poin);
+
+      document.getElementById("editLaporanModal").classList.remove("hidden");
+    }
+
+    function onEditLapKelasChange(preselectSiswa = "") {
+      const kelasDipilih = document.getElementById("editLapKelas").value;
+      const selSiswa = document.getElementById("editLapSiswa");
+      const siswaKelas = masterSiswa.filter(s => String(s.Kelas).trim() === kelasDipilih);
+
+      selSiswa.innerHTML = siswaKelas.map(s => `<option value="${s.Nama_Siswa}">${s.Nama_Siswa}</option>`).join("");
+      if (preselectSiswa && ![...selSiswa.options].some(o => o.value === preselectSiswa)) {
+        selSiswa.innerHTML += `<option value="${preselectSiswa}">${preselectSiswa}</option>`;
+      }
+      if (preselectSiswa) selSiswa.value = preselectSiswa;
+    }
+
+    function onEditLapKategoriChange(preselectJenis = "", preselectPoin = null) {
+      const kat = document.getElementById("editLapKategori").value;
+      const selJenis = document.getElementById("editLapJenis");
+      const aturanFiltered = masterAturan.filter(a => String(a.Kategori).trim().toLowerCase() === kat.toLowerCase());
+
+      selJenis.innerHTML = aturanFiltered.map(a => {
+        const p = Number(a.Poin) || 0;
+        return `<option value="${a.Jenis_Pelanggaran}" data-poin="${p}">${a.Jenis_Pelanggaran} (+${p} Poin)</option>`;
+      }).join("");
+
+      if (preselectJenis && ![...selJenis.options].some(o => o.value === preselectJenis)) {
+        selJenis.innerHTML += `<option value="${preselectJenis}" data-poin="${preselectPoin ?? 0}">${preselectJenis}</option>`;
+      }
+      if (preselectJenis) {
+        selJenis.value = preselectJenis;
+      }
+
+      if (preselectPoin !== null && preselectPoin !== undefined) {
+        document.getElementById("editLapPoin").value = Number(preselectPoin);
+      } else {
+        onEditLapJenisChange();
+      }
+    }
+
+    function onEditLapJenisChange() {
+      const selJenis = document.getElementById("editLapJenis");
+      const opt = selJenis.options[selJenis.selectedIndex];
+      if (opt) {
+        document.getElementById("editLapPoin").value = Number(opt.getAttribute("data-poin")) || 0;
+      }
+    }
+
+    function closeEditLaporanModal() {
+      document.getElementById("editLaporanModal").classList.add("hidden");
+    }
+
+    document.getElementById("formEditLaporan").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const idTransaksi = document.getElementById("editLapId").value;
+      if (!idTransaksi) {
+        showToast("ID Transaksi tidak ditemukan untuk baris ini.", "error");
+        return;
+      }
+
+      const updatedPayload = {
+        action: "updateLaporan",
+        id: idTransaksi,
+        tanggal: document.getElementById("editLapTanggal").value,
+        guru: document.getElementById("editLapGuru").value,
+        kelas: document.getElementById("editLapKelas").value,
+        siswa: document.getElementById("editLapSiswa").value,
+        kategori: document.getElementById("editLapKategori").value,
+        jenis: document.getElementById("editLapJenis").value,
+        poin: Number(document.getElementById("editLapPoin").value) || 0
+      };
+
+      const btnSave = document.getElementById("btnSaveEditLap");
+      btnSave.disabled = true;
+      btnSave.textContent = "Menyimpan...";
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(updatedPayload)
+        });
+        const rawText = await res.text();
+        let result;
+        try {
+          result = JSON.parse(rawText);
+        } catch (err) {
+          throw new Error("Respons server tidak valid.");
+        }
+
+        if (result.status === "success") {
+          // Perbarui juga state lokal & cache langsung
+          const idxGlobal = allLaporan.findIndex(item => String(item.ID_Transaksi) === String(idTransaksi));
+          if (idxGlobal >= 0) {
+            allLaporan[idxGlobal] = {
+              ...allLaporan[idxGlobal],
+              Tanggal: updatedPayload.tanggal,
+              Nama_Guru: updatedPayload.guru,
+              Kelas: updatedPayload.kelas,
+              Nama_Siswa: updatedPayload.siswa,
+              Kategori: updatedPayload.kategori,
+              Jenis_Pelanggaran: updatedPayload.jenis,
+              Poin: updatedPayload.poin
+            };
+            localStorage.setItem("capps_laporan_v1", JSON.stringify(allLaporan));
+          }
+
+          applyFilters();
+          closeEditLaporanModal();
+          showToast("Perubahan berhasil disimpan ke Spreadsheet!", "success");
+        } else {
+          showToast(result.message || "Gagal memperbarui data di server.", "error");
+        }
+      } catch (err) {
+        showToast("Gagal menyimpan perubahan: " + (err.message || "Cek koneksi internet."), "error");
+      } finally {
+        btnSave.disabled = false;
+        btnSave.textContent = "Simpan Perubahan";
+      }
+    });
 
     // =========================================================================
     // RENDER 4 GRAFIK STATISTIK (CHART.JS)
