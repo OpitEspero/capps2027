@@ -654,11 +654,20 @@
       syncIcon.classList.add("animate-spin");
 
       try {
-        const res = await fetch(`${SCRIPT_URL}?t=${Date.now()}`);
-        const data = await res.json();
+        const res = await fetch(`${SCRIPT_URL}?t=${Date.now()}`, {
+          method: "GET",
+          redirect: "follow",
+          cache: "no-store"
+        });
+        const rawText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (parseErr) {
+          throw new Error("Respons server tidak valid. Pastikan deployment berizin 'Anyone'.");
+        }
 
         if (data.status === "success") {
-          // Perbarui master dari server jika tersedia
           if (data.master?.guru?.length) {
             masterGuru = data.master.guru;
             localStorage.setItem("capps_master_guru", JSON.stringify(masterGuru));
@@ -683,7 +692,7 @@
           showToast(data.message || "Gagal mengambil data", "error");
         }
       } catch (err) {
-        if (showNotif) showToast("Gagal terhubung ke server. Cek koneksi internet.", "error");
+        if (showNotif) showToast(err.message || "Gagal terhubung ke server. Cek koneksi internet.", "error");
       } finally {
         loadingBar.classList.add("hidden");
         syncIcon.classList.remove("animate-spin");
@@ -797,11 +806,14 @@
     }
 
     // =========================================================================
-    // KOMPRESI FOTO HEMAT RAM (ANTI LOW MEMORY DI HP)
+    // KOMPRESI FOTO STABIL UNTUK KAMERA & GALERI ANDROID WEBVIEW
     // =========================================================================
-    async function handleImageSelect(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+    function handleImageSelect(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) {
+        showToast("Tidak ada file foto yang diterima dari kamera.", "error");
+        return;
+      }
 
       const infoEl = document.getElementById("infoKompresi");
       const previewBox = document.getElementById("previewContainer");
@@ -813,22 +825,13 @@
       const MAX_DIM = 800;
       const QUALITY = 0.70;
 
-      try {
-        let canvas = document.createElement("canvas");
-        let ctx = canvas.getContext("2d");
-        let width = 0;
-        let height = 0;
-
-        if (window.createImageBitmap) {
-          let bitmap;
+      const processImageSource = (srcUrl, revokeCallback) => {
+        const img = new Image();
+        img.onload = () => {
           try {
-            bitmap = await createImageBitmap(file, { resizeWidth: MAX_DIM, resizeQuality: "medium" });
-            width = bitmap.width;
-            height = bitmap.height;
-          } catch (errOpt) {
-            bitmap = await createImageBitmap(file);
-            width = bitmap.width;
-            height = bitmap.height;
+            let width = img.width;
+            let height = img.height;
+
             if (width > MAX_DIM || height > MAX_DIM) {
               if (width >= height) {
                 height = Math.round((height * MAX_DIM) / width);
@@ -838,55 +841,47 @@
                 height = MAX_DIM;
               }
             }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            compressedBase64 = canvas.toDataURL("image/jpeg", QUALITY);
+            imgPreview.src = compressedBase64;
+
+            canvas.width = 0;
+            canvas.height = 0;
+            if (revokeCallback) revokeCallback();
+
+            const sizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
+            infoEl.textContent = `Terkompresi: ~${sizeKB} KB (${width}x${height}px)`;
+          } catch (canvasErr) {
+            if (revokeCallback) revokeCallback();
+            showToast("Gagal mengompresi foto: " + canvasErr.message, "error");
+            clearImage();
           }
+        };
+        img.onerror = () => {
+          if (revokeCallback) revokeCallback();
+          showToast("Gagal memuat gambar hasil kamera.", "error");
+          clearImage();
+        };
+        img.src = srcUrl;
+      };
 
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(bitmap, 0, 0, width, height);
-          bitmap.close();
-        } else {
-          const objectUrl = URL.createObjectURL(file);
-          await new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => {
-              width = img.width;
-              height = img.height;
-              if (width > MAX_DIM || height > MAX_DIM) {
-                if (width >= height) {
-                  height = Math.round((height * MAX_DIM) / width);
-                  width = MAX_DIM;
-                } else {
-                  width = Math.round((width * MAX_DIM) / height);
-                  height = MAX_DIM;
-                }
-              }
-              canvas.width = width;
-              canvas.height = height;
-              ctx.drawImage(img, 0, 0, width, height);
-              URL.revokeObjectURL(objectUrl);
-              resolve();
-            };
-            img.onerror = (e) => {
-              URL.revokeObjectURL(objectUrl);
-              reject(e);
-            };
-            img.src = objectUrl;
-          });
-        }
-
-        compressedBase64 = canvas.toDataURL("image/jpeg", QUALITY);
-        imgPreview.src = compressedBase64;
-
-        canvas.width = 0;
-        canvas.height = 0;
-        canvas = null;
-
-        const sizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
-        infoEl.textContent = `Terkompresi: ~${sizeKB} KB (${width}x${height}px)`;
-      } catch (err) {
-        console.error("Gagal memproses foto:", err);
-        showToast("Memori HP penuh saat memuat foto. Tutup aplikasi lain lalu coba lagi.", "error");
-        clearImage();
+      try {
+        const objectUrl = URL.createObjectURL(file);
+        processImageSource(objectUrl, () => URL.revokeObjectURL(objectUrl));
+      } catch (e) {
+        const reader = new FileReader();
+        reader.onload = (ev) => processImageSource(ev.target.result, null);
+        reader.onerror = () => {
+          showToast("Gagal membaca file foto dari perangkat.", "error");
+          clearImage();
+        };
+        reader.readAsDataURL(file);
       }
     }
 
@@ -925,9 +920,20 @@
       try {
         const res = await fetch(SCRIPT_URL, {
           method: "POST",
+          redirect: "follow",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
           body: JSON.stringify(payload)
         });
-        const result = await res.json();
+
+        const rawText = await res.text();
+        let result;
+        try {
+          result = JSON.parse(rawText);
+        } catch (parseErr) {
+          throw new Error("Respons server tidak valid. Pastikan deployment Apps Script berizin 'Anyone'.");
+        }
 
         if (result.status === "success") {
           document.getElementById("successModalDetail").innerHTML = `
@@ -947,10 +953,10 @@
 
           fetchAllData(false);
         } else {
-          showToast(result.message || "Gagal menyimpan data", "error");
+          showToast(result.message || "Gagal menyimpan data ke Spreadsheet.", "error");
         }
       } catch (err) {
-        showToast("Terjadi kesalahan jaringan saat mengirim data.", "error");
+        showToast("Gagal mengirim: " + (err.message || "Cek koneksi internet."), "error");
       } finally {
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = `
@@ -1230,6 +1236,10 @@
       try {
         const res = await fetch(SCRIPT_URL, {
           method: "POST",
+          redirect: "follow",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
           body: JSON.stringify({
             action: "exportFile",
             fileName: fileName,
@@ -1360,7 +1370,10 @@
       }
 
       try {
-        const res = await fetch(`${SCRIPT_URL}?action=getPhoto&id=${matchId[0]}`);
+        const res = await fetch(`${SCRIPT_URL}?action=getPhoto&id=${matchId[0]}`, {
+          method: "GET",
+          redirect: "follow"
+        });
         const data = await res.json();
         if (data.status === "success" && data.dataUrl) {
           imgEl.src = data.dataUrl;
