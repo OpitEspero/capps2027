@@ -1257,6 +1257,10 @@
       document.getElementById("modalPhotoImg").src = "";
     }
 
+    function closeSuccessModal() {
+      document.getElementById("successModal").classList.add("hidden");
+    }
+    
     function showToast(msg, type = "success") {
       const toast = document.getElementById("toast");
       toast.textContent = msg;
