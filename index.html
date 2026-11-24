@@ -41,7 +41,7 @@
 
   <!-- Chart.js untuk Grafik Statistik -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- SheetJS untuk Export Excel (.xlsx) -->
+  <!-- SheetJS untuk Impor & Export Excel (.xlsx) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- jsPDF & AutoTable untuk Export PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -87,34 +87,44 @@
   <!-- KONFIGURASI URL GOOGLE APPS SCRIPT (/exec)                            -->
   <!-- ===================================================================== -->
   <script>
-    // GANTI URL DI BAWAH INI DENGAN URL WEB APP (/exec) DARI APPS SCRIPT ANDA
+    // URL WEB APP (/exec) DARI APPS SCRIPT ANDA
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9QX3JyPJPTgvj7PLXz-4hhUEdS7H8WiuJGT8ZmlG7d00Y8mB1zgPHcO5kRRfW1po0MA/exec";
   </script>
 
   <!-- HEADER TOP BAR -->
   <header class="sticky top-0 z-40 glass-card border-b border-cyan-500/20 px-4 py-3">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center neon-glow">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center neon-glow shrink-0">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
           </svg>
         </div>
         <div>
-          <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
             CaPPS DIGITAL
           </h1>
-          <p class="text-[11px] text-slate-400 tracking-wide">Catatan Poin Pelanggaran Siswa</p>
+          <p class="text-[10px] sm:text-[11px] text-slate-400 tracking-wide">Catatan Poin Pelanggaran Siswa</p>
         </div>
       </div>
 
-      <!-- Tombol Sinkronisasi Data -->
-      <button onclick="fetchAllData(true)" id="btnSync" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-cyan-400 transition active:scale-95">
-        <svg id="syncIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-        </svg>
-        <span>Sinkron</span>
-      </button>
+      <!-- Grup Tombol Header: Impor Master & Sinkron Laporan -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <label title="Impor Master_Guru, Master_Siswa, & Master_Aturan dari Excel (.xlsx)" class="cursor-pointer flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-500/40 text-[11px] sm:text-xs font-medium text-indigo-300 transition active:scale-95">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+          </svg>
+          <span>Impor Master</span>
+          <input type="file" id="fileImportMaster" accept=".xlsx, .xls" class="hidden" onchange="handleImportMaster(event)" />
+        </label>
+
+        <button onclick="fetchAllData(true)" id="btnSync" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-[11px] sm:text-xs font-medium text-cyan-400 transition active:scale-95">
+          <svg id="syncIcon" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Sinkron</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -138,9 +148,9 @@
               <span class="w-2 h-5 rounded-full bg-cyan-400 inline-block"></span>
               Input Pelanggaran Baru
             </h2>
-            <p class="text-xs text-slate-400 mt-0.5">Lengkapi data kejadian dan lampirkan bukti foto</p>
+            <p id="masterStatusInfo" class="text-xs text-slate-400 mt-0.5">Lengkapi data kejadian dan lampirkan bukti foto</p>
           </div>
-          <span id="badgePoinPreview" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+          <span id="badgePoinPreview" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 shrink-0">
             +0 Poin
           </span>
         </div>
@@ -156,7 +166,7 @@
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">2. Nama Guru Pencatat <span class="text-rose-400">*</span></label>
             <select id="inputGuru" required class="w-full rounded-xl px-3.5 py-2.5 text-sm input-cyber">
-              <option value="">-- Memuat daftar guru... --</option>
+              <option value="">-- Pilih Nama Guru --</option>
             </select>
           </div>
 
@@ -417,7 +427,7 @@
     </div>
   </div>
 
-<!-- MODAL KONFIRMASI DATA TERKIRIM KE SPREADSHEET -->
+  <!-- MODAL KONFIRMASI DATA TERKIRIM KE SPREADSHEET -->
   <div id="successModal" onclick="closeSuccessModal()" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div onclick="event.stopPropagation()" class="glass-card rounded-2xl max-w-sm w-full p-6 text-center space-y-4 border border-emerald-500/40 shadow-2xl">
       <div class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mx-auto text-emerald-400">
@@ -426,7 +436,7 @@
         </svg>
       </div>
       <div>
-        <h3 class="text-lg font-extrabold text-white">Data Masuk ke Server!</h3>
+        <h3 class="text-lg font-extrabold text-white">Data Masuk ke Spreadsheet!</h3>
         <p class="text-xs text-slate-400 mt-1">Catatan pelanggaran siswa berhasil disimpan ke database sekolah.</p>
       </div>
       <div id="successModalDetail" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-left text-xs space-y-1.5 font-mono text-slate-300">
@@ -436,7 +446,7 @@
       </button>
     </div>
   </div>
-  
+
   <!-- TOAST NOTIFICATION -->
   <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl text-xs font-semibold shadow-2xl border transition-all duration-300"></div>
 
@@ -474,15 +484,16 @@
     // Instance Grafik Chart.js
     let charts = { kategori: null, harian: null, mingguan: null, bulanan: null };
 
-    // Inisialisasi saat halaman dimuat
+    // Inisialisasi saat halaman dimuat (Loading Instan dari Cache Lokal / Impor Excel)
     document.addEventListener("DOMContentLoaded", () => {
-      // Set tanggal hari ini secara default pada form input
       const today = new Date().toISOString().split("T")[0];
       document.getElementById("inputTanggal").value = today;
 
-      // Muat data dari cache lokal dulu agar instan, lalu sinkron dari server
-      loadFromLocalCache();
-      fetchAllData(false);
+      const hasMaster = loadFromLocalCache();
+      if (!hasMaster) {
+        // Hanya sinkron otomatis di awal jika belum ada data master di memori HP
+        fetchAllData(false);
+      }
     });
 
     // Navigasi Tab
@@ -502,24 +513,132 @@
         pageLaporan.classList.remove("hidden");
         navLaporan.className = "flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition";
         navInput.className = "flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition";
-        applyFilters(); // Render ulang grafik & tabel saat tab laporan dibuka
+        applyFilters();
+        // Tarik data laporan terbaru dari server secara latar belakang saat tab Laporan dibuka
+        fetchAllData(false);
       }
     }
 
-    // Simpan & Muat Cache Lokal (Agar tidak blank saat sinyal lambat)
+    // Simpan & Muat Cache Lokal
     function loadFromLocalCache() {
-      const cached = localStorage.getItem("capps_cache_v1");
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          masterGuru = parsed.master?.guru || [];
-          masterSiswa = parsed.master?.siswa || [];
-          masterAturan = parsed.master?.aturan || [];
-          allLaporan = parsed.laporan || [];
-          populateDropdowns();
-          applyFilters();
-        } catch (e) { console.warn("Cache invalid"); }
+      let hasMasterData = false;
+      try {
+        const cachedGuru = localStorage.getItem("capps_master_guru");
+        const cachedSiswa = localStorage.getItem("capps_master_siswa");
+        const cachedAturan = localStorage.getItem("capps_master_aturan");
+        const cachedLaporan = localStorage.getItem("capps_laporan_v1");
+
+        if (cachedGuru) masterGuru = JSON.parse(cachedGuru);
+        if (cachedSiswa) masterSiswa = JSON.parse(cachedSiswa);
+        if (cachedAturan) masterAturan = JSON.parse(cachedAturan);
+        if (cachedLaporan) allLaporan = JSON.parse(cachedLaporan);
+
+        // Fallback migrasi jika masih menggunakan key cache versi lama
+        if (masterGuru.length === 0 && masterSiswa.length === 0) {
+          const oldCache = localStorage.getItem("capps_cache_v1");
+          if (oldCache) {
+            const parsed = JSON.parse(oldCache);
+            masterGuru = parsed.master?.guru || [];
+            masterSiswa = parsed.master?.siswa || [];
+            masterAturan = parsed.master?.aturan || [];
+            allLaporan = parsed.laporan || [];
+          }
+        }
+
+        if (masterGuru.length > 0 || masterSiswa.length > 0 || masterAturan.length > 0) {
+          hasMasterData = true;
+          updateMasterStatusLabel();
+        }
+
+        populateDropdowns();
+        applyFilters();
+      } catch (e) {
+        console.warn("Cache lokal tidak valid:", e);
       }
+      return hasMasterData;
+    }
+
+    function updateMasterStatusLabel() {
+      const infoEl = document.getElementById("masterStatusInfo");
+      if (infoEl && (masterGuru.length > 0 || masterSiswa.length > 0)) {
+        infoEl.textContent = `Master lokal aktif: ${masterGuru.length} Guru • ${masterSiswa.length} Siswa • ${masterAturan.length} Aturan`;
+      }
+    }
+
+    // =========================================================================
+    // IMPOR DATA MASTER (Master_Guru, Master_Siswa, Master_Aturan) DARI EXCEL
+    // =========================================================================
+    function handleImportMaster(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+
+          let importedSheets = [];
+
+          // 1. Baca Sheet Master_Guru
+          if (workbook.Sheets["Master_Guru"]) {
+            const rawGuru = XLSX.utils.sheet_to_json(workbook.Sheets["Master_Guru"], { defval: "" });
+            const validGuru = rawGuru.filter(g => String(g.Nama_Guru || "").trim() !== "");
+            if (validGuru.length > 0) {
+              masterGuru = validGuru.map(g => ({
+                Nama_Guru: String(g.Nama_Guru).trim(),
+                Jabatan_Mapel: String(g.Jabatan_Mapel || "").trim()
+              }));
+              localStorage.setItem("capps_master_guru", JSON.stringify(masterGuru));
+              importedSheets.push("Master_Guru");
+            }
+          }
+
+          // 2. Baca Sheet Master_Siswa (Pertahankan NIS 10 digit)
+          if (workbook.Sheets["Master_Siswa"]) {
+            const rawSiswa = XLSX.utils.sheet_to_json(workbook.Sheets["Master_Siswa"], { defval: "" });
+            const validSiswa = rawSiswa.filter(s => String(s.Nama_Siswa || "").trim() !== "");
+            if (validSiswa.length > 0) {
+              masterSiswa = validSiswa.map(s => ({
+                Kelas: String(s.Kelas || "").trim(),
+                Nama_Siswa: String(s.Nama_Siswa || "").trim(),
+                NIS: s.NIS !== "" && s.NIS !== null ? String(s.NIS).trim().padStart(10, "0") : ""
+              }));
+              localStorage.setItem("capps_master_siswa", JSON.stringify(masterSiswa));
+              importedSheets.push("Master_Siswa");
+            }
+          }
+
+          // 3. Baca Sheet Master_Aturan
+          if (workbook.Sheets["Master_Aturan"]) {
+            const rawAturan = XLSX.utils.sheet_to_json(workbook.Sheets["Master_Aturan"], { defval: "" });
+            const validAturan = rawAturan.filter(a => String(a.Jenis_Pelanggaran || "").trim() !== "");
+            if (validAturan.length > 0) {
+              masterAturan = validAturan.map(a => ({
+                Kategori: String(a.Kategori || "").trim(),
+                Jenis_Pelanggaran: String(a.Jenis_Pelanggaran || "").trim(),
+                Poin: Number(a.Poin) || 0
+              }));
+              localStorage.setItem("capps_master_aturan", JSON.stringify(masterAturan));
+              importedSheets.push("Master_Aturan");
+            }
+          }
+
+          if (importedSheets.length > 0) {
+            populateDropdowns();
+            updateMasterStatusLabel();
+            showToast(`Impor berhasil (${importedSheets.join(", ")})!`, "success");
+          } else {
+            showToast("Sheet Master_Guru, Master_Siswa, atau Master_Aturan tidak ditemukan / kosong.", "error");
+          }
+        } catch (err) {
+          console.error("Error impor Excel:", err);
+          showToast("Gagal membaca file Excel. Pastikan format .xlsx valid.", "error");
+        } finally {
+          event.target.value = "";
+        }
+      };
+      reader.readAsArrayBuffer(file);
     }
 
     // Ambil Data dari Google Apps Script (doGet)
@@ -535,24 +654,36 @@
       syncIcon.classList.add("animate-spin");
 
       try {
-        const res = await fetch(SCRIPT_URL);
+        const res = await fetch(`${SCRIPT_URL}?t=${Date.now()}`);
         const data = await res.json();
 
         if (data.status === "success") {
-          masterGuru = data.master.guru || [];
-          masterSiswa = data.master.siswa || [];
-          masterAturan = data.master.aturan || [];
-          allLaporan = data.laporan || [];
+          // Perbarui master dari server jika tersedia
+          if (data.master?.guru?.length) {
+            masterGuru = data.master.guru;
+            localStorage.setItem("capps_master_guru", JSON.stringify(masterGuru));
+          }
+          if (data.master?.siswa?.length) {
+            masterSiswa = data.master.siswa;
+            localStorage.setItem("capps_master_siswa", JSON.stringify(masterSiswa));
+          }
+          if (data.master?.aturan?.length) {
+            masterAturan = data.master.aturan;
+            localStorage.setItem("capps_master_aturan", JSON.stringify(masterAturan));
+          }
 
-          localStorage.setItem("capps_cache_v1", JSON.stringify(data));
+          allLaporan = data.laporan || [];
+          localStorage.setItem("capps_laporan_v1", JSON.stringify(allLaporan));
+
           populateDropdowns();
+          updateMasterStatusLabel();
           applyFilters();
           if (showNotif) showToast("Database berhasil disinkronkan!", "success");
         } else {
           showToast(data.message || "Gagal mengambil data", "error");
         }
       } catch (err) {
-        showToast("Gagal terhubung ke server. Cek koneksi internet.", "error");
+        if (showNotif) showToast("Gagal terhubung ke server. Cek koneksi internet.", "error");
       } finally {
         loadingBar.classList.add("hidden");
         syncIcon.classList.remove("animate-spin");
@@ -561,20 +692,23 @@
 
     // Isi Dropdown Guru, Kelas, dan Daftar Siswa Awal di Filter
     function populateDropdowns() {
-      // 1. Dropdown Guru
       const selGuru = document.getElementById("inputGuru");
+      const prevGuru = selGuru.value;
       selGuru.innerHTML = '<option value="">-- Pilih Nama Guru --</option>';
       masterGuru.forEach(g => {
         if (g.Nama_Guru) {
           selGuru.innerHTML += `<option value="${g.Nama_Guru}">${g.Nama_Guru}</option>`;
         }
       });
+      if (prevGuru) selGuru.value = prevGuru;
 
-      // 2. Ekstrak Daftar Kelas Unik
       const kelasUnik = [...new Set(masterSiswa.map(s => String(s.Kelas).trim()).filter(Boolean))].sort();
 
       const selKelasInput = document.getElementById("inputKelas");
       const selKelasFilter = document.getElementById("filterKelas");
+      const prevKelasInput = selKelasInput.value;
+      const prevKelasFilter = selKelasFilter.value;
+
       selKelasInput.innerHTML = '<option value="">-- Pilih Kelas --</option>';
       selKelasFilter.innerHTML = '<option value="">Semua Kelas</option>';
 
@@ -583,7 +717,9 @@
         selKelasFilter.innerHTML += `<option value="${kls}">${kls}</option>`;
       });
 
-      // 3. Isi opsi awal Dropdown Filter Siswa
+      if (prevKelasInput) selKelasInput.value = prevKelasInput;
+      if (prevKelasFilter) selKelasFilter.value = prevKelasFilter;
+
       updateFilterSiswaDropdown();
     }
 
@@ -605,7 +741,6 @@
         }
       });
 
-      // Pertahankan pilihan siswa jika masih ada dalam daftar kelas tersebut
       if ([...selSiswaFilter.options].some(opt => opt.value === nilaiSebelumnya)) {
         selSiswaFilter.value = nilaiSebelumnya;
       } else {
@@ -613,7 +748,7 @@
       }
     }
 
-    // Cascading Dropdown Form Input: Kelas -> Siswa (Menampilkan Nama + NIS 10 digit)
+    // Cascading Dropdown Form Input: Kelas -> Siswa
     function onKelasChange() {
       const kelasDipilih = document.getElementById("inputKelas").value;
       const selSiswa = document.getElementById("inputSiswa");
@@ -654,7 +789,6 @@
       selJenis.disabled = false;
     }
 
-    // Update Badge Poin saat Jenis Pelanggaran dipilih
     function onJenisChange() {
       const selJenis = document.getElementById("inputJenis");
       const selectedOption = selJenis.options[selJenis.selectedIndex];
@@ -676,7 +810,7 @@
       infoEl.textContent = "Memproses & mengompresi foto...";
       previewBox.classList.remove("hidden");
 
-      const MAX_DIM = 800; // Ukuran maksimal sisi terpanjang (hemat RAM & kuota)
+      const MAX_DIM = 800;
       const QUALITY = 0.70;
 
       try {
@@ -685,11 +819,9 @@
         let width = 0;
         let height = 0;
 
-        // Gunakan createImageBitmap jika didukung (jauh lebih hemat memori HP dibanding FileReader base64)
         if (window.createImageBitmap) {
           let bitmap;
           try {
-            // Downscale langsung saat decode agar RAM HP tidak penuh oleh foto 12MP-50MP
             bitmap = await createImageBitmap(file, { resizeWidth: MAX_DIM, resizeQuality: "medium" });
             width = bitmap.width;
             height = bitmap.height;
@@ -711,9 +843,8 @@
           canvas.width = width;
           canvas.height = height;
           ctx.drawImage(bitmap, 0, 0, width, height);
-          bitmap.close(); // Segera bebaskan memori bitmap dari RAM
+          bitmap.close();
         } else {
-          // Fallback menggunakan ObjectURL (lebih ringan dari FileReader DataURL)
           const objectUrl = URL.createObjectURL(file);
           await new Promise((resolve, reject) => {
             const img = new Image();
@@ -732,7 +863,7 @@
               canvas.width = width;
               canvas.height = height;
               ctx.drawImage(img, 0, 0, width, height);
-              URL.revokeObjectURL(objectUrl); // Bebaskan memori ObjectURL
+              URL.revokeObjectURL(objectUrl);
               resolve();
             };
             img.onerror = (e) => {
@@ -743,11 +874,9 @@
           });
         }
 
-        // Hasilkan base64 terkompresi
         compressedBase64 = canvas.toDataURL("image/jpeg", QUALITY);
         imgPreview.src = compressedBase64;
 
-        // Kosongkan buffer canvas agar RAM langsung lega
         canvas.width = 0;
         canvas.height = 0;
         canvas = null;
@@ -770,7 +899,7 @@
     }
 
     // =========================================================================
-    // KIRIM FORM KE GOOGLE APPS SCRIPT (doPost)
+    // KIRIM FORM KE GOOGLE APPS SCRIPT (doPost) + POP-UP NOTIFIKASI SUKSES
     // =========================================================================
     document.getElementById("formPelanggaran").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -839,13 +968,11 @@
       if (!rawDate) return "";
       const str = String(rawDate).trim();
 
-      // 1. Format ISO YYYY-MM-DD atau YYYY/MM/DD
       const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
       if (isoMatch) {
         return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}-${isoMatch[3].padStart(2, "0")}`;
       }
 
-      // 2. Format DD-MM-YYYY atau MM-DD-YYYY (dengan tanda - atau /)
       const slashMatch = str.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
       if (slashMatch) {
         const p1 = parseInt(slashMatch[1], 10);
@@ -859,13 +986,12 @@
         return `${y}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
       }
 
-      // 3. Format string Date bawaan JS/Apps Script
       const monthMap = {
         jan: "01", feb: "02", mar: "03", apr: "04", may: "05", mei: "05",
         jun: "06", jul: "07", aug: "08", agu: "08", sep: "09",
         oct: "10", okt: "10", nov: "11", dec: "12", des: "12"
       };
-      const textMonthMatch = str.match(/\b([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})\b/);
+      const textMonthMatch = str.match(/ ([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4}) /);
       if (textMonthMatch) {
         const mKey = textMonthMatch[1].substring(0, 3).toLowerCase();
         if (monthMap[mKey]) {
@@ -880,7 +1006,7 @@
           return `${fallbackYear}-${monthMap[mKey]}-${shortDayMonthMatch[2].padStart(2, "0")}`;
         }
       }
-      const dmyTextMatch = str.match(/\b(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})\b/);
+      const dmyTextMatch = str.match(/ (\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4}) /);
       if (dmyTextMatch) {
         const mKey = dmyTextMatch[2].substring(0, 3).toLowerCase();
         if (monthMap[mKey]) {
@@ -888,7 +1014,6 @@
         }
       }
 
-      // 4. Fallback terakhir new Date()
       const parsed = new Date(str);
       if (!isNaN(parsed.getTime())) {
         const y = parsed.getFullYear();
@@ -989,7 +1114,6 @@
       Chart.defaults.color = "#94a3b8";
       Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
 
-      // 1. Grafik Kategori
       const katCounts = { "Kelakuan": 0, "Kerajinan & Pembiasaan": 0, "Kerapian": 0 };
       filteredLaporan.forEach(r => {
         if (katCounts[r.Kategori] !== undefined) katCounts[r.Kategori]++;
@@ -999,7 +1123,6 @@
       drawChart("kategori", "chartKategori", "doughnut", Object.keys(katCounts), Object.values(katCounts),
         ["#f43f5e", "#06b6d4", "#f59e0b"], "Jumlah Kasus");
 
-      // 2. Grafik Harian (10 tanggal terakhir dari hasil filter)
       const dailyMap = {};
       filteredLaporan.forEach(r => {
         const tglKey = r.TanggalNormalized || r.Tanggal; dailyMap[tglKey] = (dailyMap[tglKey] || 0) + 1;
@@ -1008,7 +1131,6 @@
       drawChart("harian", "chartHarian", "bar", sortedDays, sortedDays.map(d => dailyMap[d]),
         "#06b6d4", "Kasus Harian");
 
-      // 3. Grafik Mingguan
       const weeklyMap = {};
       filteredLaporan.forEach(r => {
         const d = new Date(r.TanggalNormalized || r.Tanggal);
@@ -1021,7 +1143,6 @@
       drawChart("mingguan", "chartMingguan", "line", sortedWeeks, sortedWeeks.map(w => weeklyMap[w]),
         "#6366f1", "Kasus Mingguan");
 
-      // 4. Grafik Bulanan
       const namaBulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
       const monthlyMap = {};
       filteredLaporan.forEach(r => {
@@ -1102,7 +1223,7 @@
     }
 
     // =========================================================================
-    // REVISI: EXPORT EXCEL (.XLSX) & PDF VIA APPS SCRIPT (UNDUHAN HTTPS ANDROID)
+    // EXPORT EXCEL (.XLSX) & PDF VIA APPS SCRIPT (UNDUHAN HTTPS ANDROID)
     // =========================================================================
     async function unduhViaAppsScript(fileName, mimeType, base64Data) {
       showToast("Menyiapkan file untuk diunduh...", "success");
@@ -1217,8 +1338,8 @@
       unduhViaAppsScript(fileName, mimeType, pdfBase64);
     }
 
-// =========================================================================
-    // MODAL FOTO & NOTIFIKASI TOAST
+    // =========================================================================
+    // MODAL FOTO, MODAL SUKSES & NOTIFIKASI TOAST
     // =========================================================================
     async function openPhotoModal(url, filename) {
       const modal = document.getElementById("photoModal");
@@ -1260,7 +1381,7 @@
     function closeSuccessModal() {
       document.getElementById("successModal").classList.add("hidden");
     }
-    
+
     function showToast(msg, type = "success") {
       const toast = document.getElementById("toast");
       toast.textContent = msg;
