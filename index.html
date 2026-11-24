@@ -1,270 +1,399 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>CaPPS DIGITAL - Catatan Pelanggaran Siswa</title>
+  <meta name="theme-color" content="#090d16" />
+  <title>CaPPS — Catatan Poin Pelanggaran Siswa</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              bg: '#090d16',
+              card: '#111827',
+              border: '#1f2937',
+              cyan: '#06b6d4',
+              indigo: '#6366f1',
+              emerald: '#10b981',
+              rose: '#f43f5e',
+              amber: '#f59e0b'
+            }
+          }
+        }
+      }
+    }
+  </script>
 
-  <!-- Chart.js untuk Grafik -->
+  <!-- Chart.js untuk Grafik Statistik -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- SheetJS (XLSX) untuk Export Excel -->
+  <!-- SheetJS untuk Export Excel (.xlsx) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
   <!-- jsPDF & AutoTable untuk Export PDF -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f1f5f9;
+      background-color: #090d16;
+      color: #f3f4f6;
       -webkit-tap-highlight-color: transparent;
+      padding-bottom: 88px;
     }
-    .tab-active {
+    .glass-card {
+      background: rgba(17, 24, 39, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+    .neon-glow {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+    }
+    .input-cyber {
       background-color: #0f172a;
-      color: #ffffff;
+      border: 1px solid #1e293b;
+      color: #f8fafc;
+      transition: all 0.2s ease;
     }
-    .tab-inactive {
-      background-color: #ffffff;
-      color: #475569;
+    .input-cyber:focus {
+      outline: none;
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
     }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
   </style>
 </head>
-<body class="text-slate-800 pb-20">
+<body class="min-h-screen antialiased selection:bg-cyan-500 selection:text-white">
 
-  <!-- HEADER -->
-  <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
-    <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
-      <div>
-        <h1 class="text-lg font-bold tracking-tight flex items-center gap-2">
-          <span class="bg-amber-500 text-slate-950 text-xs font-extrabold px-2 py-0.5 rounded">CaPPS</span>
-          <span>DIGITAL</span>
-        </h1>
-        <p class="text-xs text-slate-400">Sistem Catatan Pelanggaran & Kedisiplinan Siswa</p>
+  <!-- ===================================================================== -->
+  <!-- KONFIGURASI URL GOOGLE APPS SCRIPT (/exec)                            -->
+  <!-- ===================================================================== -->
+  <script>
+    // GANTI URL DI BAWAH INI DENGAN URL WEB APP (/exec) DARI APPS SCRIPT ANDA
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9QX3JyPJPTgvj7PLXz-4hhUEdS7H8WiuJGT8ZmlG7d00Y8mB1zgPHcO5kRRfW1po0MA/exec";
+  </script>
+
+  <!-- HEADER TOP BAR -->
+  <header class="sticky top-0 z-40 glass-card border-b border-cyan-500/20 px-4 py-3">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center neon-glow">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
+            CaPPS DIGITAL
+          </h1>
+          <p class="text-[11px] text-slate-400 tracking-wide">Catatan Poin Pelanggaran Siswa</p>
+        </div>
       </div>
-      <button onclick="muatDataServer(true)" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-2 rounded-lg border border-slate-700 font-medium active:scale-95 transition">
-        Muat Ulang
-      </button>
-    </div>
 
-    <!-- NAVIGASI TAB -->
-    <div class="max-w-4xl mx-auto px-4 pb-3 grid grid-cols-2 gap-2">
-      <button id="btnTabInput" onclick="bukaTab('input')" class="tab-active py-2.5 rounded-lg text-sm font-semibold shadow-sm transition">
-        Input Pelanggaran
-      </button>
-      <button id="btnTabLaporan" onclick="bukaTab('laporan')" class="tab-inactive py-2.5 rounded-lg text-sm font-semibold shadow-sm transition">
-        Laporan & Grafik
+      <!-- Tombol Sinkronisasi Data -->
+      <button onclick="fetchAllData(true)" id="btnSync" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-cyan-400 transition active:scale-95">
+        <svg id="syncIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <span>Sinkron</span>
       </button>
     </div>
   </header>
 
-  <!-- TOAST NOTIFIKASI -->
-  <div id="toastBox" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 hidden max-w-sm w-[92%]">
-    <div id="toastContent" class="px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white text-center"></div>
+  <!-- STATUS BANNER / LOADING -->
+  <div id="loadingBar" class="hidden bg-cyan-950/80 border-b border-cyan-500/30 px-4 py-2 text-center text-xs text-cyan-300 flex items-center justify-center gap-2">
+    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+    <span id="loadingText">Menyinkronkan database sekolah...</span>
   </div>
 
-  <!-- MODAL PREVIEW FOTO -->
-  <div id="modalFoto" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4" onclick="tutupModalFoto()">
-    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
-      <div class="px-4 py-3 border-b flex justify-between items-center bg-slate-50">
-        <span id="modalFotoJudul" class="text-xs font-bold text-slate-700 truncate">Bukti Pelanggaran</span>
-        <button onclick="tutupModalFoto()" class="text-slate-500 hover:text-slate-900 font-bold text-sm px-2 py-1">Tutup</button>
-      </div>
-      <div class="p-3 bg-slate-900 flex items-center justify-center min-h-[240px]">
-        <img id="modalFotoImg" src="" alt="Bukti Foto" class="max-h-[70vh] w-auto rounded object-contain" />
-      </div>
-    </div>
-  </div>
-
-  <main class="max-w-4xl mx-auto px-4 pt-4">
-
-    <!-- INDIKATOR LOADING AWAL -->
-    <div id="loadingBanner" class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3 mb-4 text-xs font-medium flex items-center justify-between">
-      <span>Menghubungkan ke database sekolah...</span>
-      <span class="animate-pulse font-bold">Loading</span>
-    </div>
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-5xl mx-auto px-4 pt-5">
 
     <!-- =================================================================== -->
     <!-- HALAMAN 1: FORM INPUT PELANGGARAN                                   -->
     <!-- =================================================================== -->
-    <section id="sectionInput" class="space-y-4">
-      <form id="formPelanggaran" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-4">
-        <div class="border-b border-slate-100 pb-2">
-          <h2 class="text-base font-bold text-slate-900">Formulir Pencatatan Pelanggaran</h2>
-          <p class="text-xs text-slate-500">Lengkapi data siswa dan jenis pelanggaran di bawah ini.</p>
+    <section id="pageInput" class="space-y-5">
+      <div class="glass-card rounded-2xl p-5 sm:p-6">
+        <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-5 rounded-full bg-cyan-400 inline-block"></span>
+              Input Pelanggaran Baru
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Lengkapi data kejadian dan lampirkan bukti foto</p>
+          </div>
+          <span id="badgePoinPreview" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+            +0 Poin
+          </span>
         </div>
 
-        <!-- Tanggal & Guru -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <form id="formPelanggaran" class="space-y-4">
+          <!-- 1. Tanggal -->
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Tanggal Kejadian *</label>
-            <input type="date" id="inputTanggal" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:border-slate-900" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Guru Pencatat *</label>
-            <select id="inputGuru" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-slate-900">
-              <option value="">-- Pilih Guru --</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Kelas & Siswa -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Kelas *</label>
-            <select id="inputKelas" required onchange="filterDropdownSiswa()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-slate-900">
-              <option value="">-- Pilih Kelas --</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Siswa *</label>
-            <select id="inputSiswa" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-slate-900">
-              <option value="">-- Pilih Kelas Dahulu --</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Kategori & Jenis Pelanggaran -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori Pelanggaran *</label>
-            <select id="inputKategori" required onchange="filterDropdownJenis()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-slate-900">
-              <option value="">-- Pilih Kategori --</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis Pelanggaran *</label>
-            <select id="inputJenis" required onchange="isiPoinOtomatis()" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-slate-900">
-              <option value="">-- Pilih Kategori Dahulu --</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Poin -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Bobot Poin Pelanggaran</label>
-          <input type="number" id="inputPoin" readonly placeholder="0" class="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm font-bold text-rose-600" />
-        </div>
-
-        <!-- Lampiran Foto Bukti -->
-        <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-3 space-y-2">
-          <label class="block text-xs font-semibold text-slate-700">Foto Bukti (Opsional)</label>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="cursor-pointer bg-slate-800 text-white text-xs font-semibold py-2.5 px-3 rounded-lg text-center active:scale-95 transition">
-              Ambil Kamera
-              <input type="file" accept="image/*" capture="environment" class="hidden" onchange="prosesPilihFoto(this)" />
-            </label>
-            <label class="cursor-pointer bg-white border border-slate-300 text-slate-700 text-xs font-semibold py-2.5 px-3 rounded-lg text-center active:scale-95 transition">
-              Pilih Galeri
-              <input type="file" accept="image/*" class="hidden" onchange="prosesPilihFoto(this)" />
-            </label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">1. Tanggal Kejadian <span class="text-rose-400">*</span></label>
+            <input type="date" id="inputTanggal" required class="w-full rounded-xl px-3.5 py-2.5 text-sm input-cyber font-mono" />
           </div>
 
-          <div id="previewFotoContainer" class="hidden pt-2">
-            <div class="relative inline-block">
-              <img id="previewFotoImg" src="" alt="Preview" class="h-28 w-auto rounded-lg border border-slate-300 object-cover" />
-              <button type="button" onclick="hapusFotoTerpilih()" class="mt-1 block text-xs text-rose-600 font-semibold underline">
-                Hapus Foto
-              </button>
+          <!-- 2. Nama Guru Pencatat -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">2. Nama Guru Pencatat <span class="text-rose-400">*</span></label>
+            <select id="inputGuru" required class="w-full rounded-xl px-3.5 py-2.5 text-sm input-cyber">
+              <option value="">-- Memuat daftar guru... --</option>
+            </select>
+          </div>
+
+          <!-- Grid Kelas & Nama Siswa -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- 3. Kelas -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">3. Kelas <span class="text-rose-400">*</span></label>
+              <select id="inputKelas" required onchange="onKelasChange()" class="w-full rounded-xl px-3.5 py-2.5 text-sm input-cyber">
+                <option value="">-- Pilih Kelas --</option>
+              </select>
+            </div>
+
+            <!-- 4. Nama Siswa (Otomatis sesuai Kelas) -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">4. Nama Siswa <span class="text-rose-400">*</span></label>
+              <select id="inputSiswa" required disabled class="w-full rounded-xl px-3.5 py-2.5 text-sm input-cyber disabled:opacity-50">
+                <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+              </select>
             </div>
           </div>
-        </div>
 
-        <!-- Tombol Simpan -->
-        <button type="submit" id="btnSimpan" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-sm shadow-md active:scale-[0.99] transition">
-          Simpan Catatan Pelanggaran
-        </button>
-      </form>
+          <!-- 5. Kategori Pelanggaran -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">5. Kategori Pelanggaran <span class="text-rose-400">*</span></label>
+            <select id="inputKategori" required onchange="onKategoriChange()" class="w-full rounded-xl px-3.5 py-2.5 text-sm input-cyber">
+              <option value="">-- Pilih Kategori --</option>
+              <option value="Kelakuan">Kelakuan</option>
+              <option value="Kerajinan & Pembiasaan">Kerajinan & Pembiasaan</option>
+              <option value="Kerapian">Kerapian</option>
+            </select>
+          </div>
+
+          <!-- 6. Jenis Pelanggaran & Poin -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">6. Jenis Pelanggaran & Poin <span class="text-rose-400">*</span></label>
+            <select id="inputJenis" required disabled onchange="onJenisChange()" class="w-full rounded-xl px-3.5 py-2.5 text-sm input-cyber disabled:opacity-50">
+              <option value="">-- Pilih Kategori Terlebih Dahulu --</option>
+            </select>
+          </div>
+
+          <!-- 7. Upload / Foto Langsung Bukti Pelanggaran -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+              7. Bukti Foto Pelanggaran <span class="text-slate-400 font-normal">(Kompresi Otomatis)</span>
+            </label>
+
+            <!-- Dua tombol terpisah: Kamera Langsung vs Galeri -->
+            <div class="grid grid-cols-2 gap-3">
+              <!-- Input Kamera Langsung -->
+              <label class="cursor-pointer flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-dashed border-cyan-500/50 text-cyan-300 transition active:scale-95">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-xs font-semibold">Potret Kamera</span>
+                <input type="file" id="fileCamera" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelect(event)" />
+              </label>
+
+              <!-- Input Galeri / File -->
+              <label class="cursor-pointer flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-dashed border-indigo-500/50 text-indigo-300 transition active:scale-95">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span class="text-xs font-semibold">Pilih Galeri</span>
+                <input type="file" id="fileGallery" accept="image/*" class="hidden" onchange="handleImageSelect(event)" />
+              </label>
+            </div>
+
+            <!-- Area Preview Foto Terkompresi -->
+            <div id="previewContainer" class="hidden mt-3 relative rounded-xl overflow-hidden border border-slate-700 bg-slate-900/90 p-2">
+              <img id="imgPreview" src="" alt="Preview Bukti" class="w-full max-h-60 object-contain rounded-lg" />
+              <div class="flex items-center justify-between mt-2 px-1">
+                <span id="infoKompresi" class="text-[11px] font-mono text-emerald-400">Siap unggah</span>
+                <button type="button" onclick="clearImage()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold">Hapus Foto</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol Submit -->
+          <div class="pt-2">
+            <button type="submit" id="btnSubmit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-cyan-500/25 transition active:scale-[0.98] flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+              </svg>
+              <span>SIMPAN CATATAN PELANGGARAN</span>
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
 
     <!-- =================================================================== -->
-    <!-- HALAMAN 2: LAPORAN, FILTER, GRAFIK & EXPORT                         -->
+    <!-- HALAMAN 2: DASHBOARD LAPORAN, GRAFIK, FILTER & EXPORT               -->
     <!-- =================================================================== -->
-    <section id="sectionLaporan" class="hidden space-y-4">
+    <section id="pageLaporan" class="hidden space-y-5">
 
-      <!-- Kartu Ringkasan -->
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-          <p class="text-xs text-slate-500 font-medium">Total Kasus (Filter)</p>
-          <p id="statTotalKasus" class="text-2xl font-extrabold text-slate-900 mt-1">0</p>
+      <!-- Panel Filter Data -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+            </svg>
+            Filter Laporan Pelanggaran
+          </h2>
+          <button onclick="resetFilters()" class="text-xs text-cyan-400 hover:underline font-medium">Reset Filter</button>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-          <p class="text-xs text-slate-500 font-medium">Akumulasi Poin</p>
-          <p id="statTotalPoin" class="text-2xl font-extrabold text-rose-600 mt-1">0</p>
-        </div>
-      </div>
 
-      <!-- Filter Data -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-bold text-slate-900">Filter Laporan</h3>
-          <button onclick="resetFilter()" class="text-xs text-blue-600 font-semibold">Reset Filter</button>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <!-- Tanggal Dari -->
           <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Kelas</label>
-            <select id="filterKelas" onchange="terapkanFilter()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white">
+            <label class="block text-[11px] text-slate-400 mb-1">Dari Tanggal</label>
+            <input type="date" id="filterTglDari" onchange="applyFilters()" oninput="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber font-mono" />
+          </div>
+          <!-- Tanggal Sampai -->
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Sampai Tanggal</label>
+            <input type="date" id="filterTglSampai" onchange="applyFilters()" oninput="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber font-mono" />
+          </div>
+          <!-- Filter Kelas -->
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Kelas</label>
+            <select id="filterKelas" onchange="updateFilterSiswaDropdown(); applyFilters();" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber">
               <option value="">Semua Kelas</option>
             </select>
           </div>
+          <!-- Filter Nama Siswa (Dropdown dinamis mengikuti Filter Kelas) -->
           <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Siswa</label>
-            <select id="filterSiswa" onchange="terapkanFilter()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white">
+            <label class="block text-[11px] text-slate-400 mb-1">Nama Siswa</label>
+            <select id="filterSiswa" onchange="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber">
               <option value="">Semua Siswa</option>
             </select>
           </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Kategori</label>
-            <select id="filterKategori" onchange="terapkanFilter()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white">
-              <option value="">Semua Kategori</option>
-            </select>
+        </div>
+      </div>
+
+      <!-- KARTU RINGKASAN & TOTAL POIN BERDASARKAN FILTER -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-cyan-400">
+          <p class="text-[11px] text-slate-400 uppercase tracking-wider">Total Kasus (Filter)</p>
+          <p id="statTotalKasus" class="text-2xl sm:text-3xl font-extrabold font-mono text-white mt-1">0</p>
+        </div>
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-500">
+          <p class="text-[11px] text-slate-400 uppercase tracking-wider">Total Poin (Filter)</p>
+          <p id="statTotalPoin" class="text-2xl sm:text-3xl font-extrabold font-mono text-rose-400 mt-1">0</p>
+        </div>
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-400 col-span-2 sm:col-span-1">
+          <p class="text-[11px] text-slate-400 uppercase tracking-wider">Rata-rata Poin / Kasus</p>
+          <p id="statRataPoin" class="text-2xl sm:text-3xl font-extrabold font-mono text-amber-400 mt-1">0</p>
+        </div>
+      </div>
+
+      <!-- 4 GRAFIK STATISTIK -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Grafik Kategori Pelanggaran -->
+        <div class="glass-card rounded-2xl p-4">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Statistik per Kategori</h3>
+          <div class="h-52 relative">
+            <canvas id="chartKategori"></canvas>
           </div>
         </div>
 
-        <!-- Tombol Export -->
-        <div class="grid grid-cols-2 gap-2.5 pt-1">
-          <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-sm active:scale-95 transition">
-            Export Excel (.xlsx)
-          </button>
-          <button onclick="exportToPDF()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-sm active:scale-95 transition">
-            Export PDF (.pdf)
-          </button>
+        <!-- Grafik Harian -->
+        <div class="glass-card rounded-2xl p-4">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Tren Pelanggaran Harian</h3>
+          <div class="h-52 relative">
+            <canvas id="chartHarian"></canvas>
+          </div>
+        </div>
+
+        <!-- Grafik Mingguan -->
+        <div class="glass-card rounded-2xl p-4">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Tren Pelanggaran Mingguan</h3>
+          <div class="h-52 relative">
+            <canvas id="chartMingguan"></canvas>
+          </div>
+        </div>
+
+        <!-- Grafik Bulanan -->
+        <div class="glass-card rounded-2xl p-4">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Tren Pelanggaran Bulanan</h3>
+          <div class="h-52 relative">
+            <canvas id="chartBulanan"></canvas>
+          </div>
         </div>
       </div>
 
-      <!-- Grafik Pelanggaran per Kategori -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-        <h3 class="text-sm font-bold text-slate-900 mb-3">Grafik Pelanggaran per Kategori</h3>
-        <div class="relative h-56 w-full">
-          <canvas id="chartPelanggaran"></canvas>
-        </div>
-      </div>
+      <!-- TABEL RINCIAN & TOMBOL EXPORT PDF / EXCEL -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-white">Rincian Data Terfilter</h3>
+            <p class="text-xs text-slate-400">Menampilkan <span id="labelJumlahBaris" class="text-cyan-400 font-bold">0</span> catatan pelanggaran</p>
+          </div>
 
-      <!-- Tabel Riwayat -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-slate-100">
-          <h3 class="text-sm font-bold text-slate-900">Riwayat Pelanggaran Siswa</h3>
+          <div class="flex items-center gap-2">
+            <button onclick="exportToExcel()" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition active:scale-95">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span>Export Excel</span>
+            </button>
+
+            <button onclick="exportToPDF()" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 text-xs font-bold transition active:scale-95">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              </svg>
+              <span>Export PDF</span>
+            </button>
+          </div>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="bg-slate-50 text-slate-600 text-[11px] uppercase border-b border-slate-200">
-                <th class="py-2.5 px-3">Tanggal</th>
-                <th class="py-2.5 px-3">Siswa & Kelas</th>
-                <th class="py-2.5 px-3">Pelanggaran</th>
-                <th class="py-2.5 px-3 text-center">Poin</th>
-                <th class="py-2.5 px-3 text-center">Bukti</th>
+              <tr class="bg-slate-900/90 text-slate-300 border-b border-slate-800">
+                <th class="p-3 font-semibold">Tanggal</th>
+                <th class="p-3 font-semibold">Siswa</th>
+                <th class="p-3 font-semibold">Kelas</th>
+                <th class="p-3 font-semibold">Kategori & Pelanggaran</th>
+                <th class="p-3 font-semibold text-center">Poin</th>
+                <th class="p-3 font-semibold text-center">Bukti</th>
               </tr>
             </thead>
-            <tbody id="tabelLaporanBody" class="divide-y divide-slate-100 text-xs">
+            <tbody id="tableBody" class="divide-y divide-slate-800/70">
               <tr>
-                <td colspan="5" class="py-6 text-center text-slate-400">Belum ada data ditampilkan.</td>
+                <td colspan="6" class="p-6 text-center text-slate-500">Memuat data pelanggaran...</td>
               </tr>
             </tbody>
+            <tfoot>
+              <tr class="bg-slate-900 font-bold text-white border-t border-cyan-500/30">
+                <td colspan="4" class="p-3 text-right uppercase tracking-wider text-slate-300">Total Poin Hasil Filter:</td>
+                <td id="tableFooterTotalPoin" class="p-3 text-center font-mono text-rose-400 text-sm">0</td>
+                <td></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
@@ -272,210 +401,362 @@
 
   </main>
 
-  <script>
-    // =========================================================================
-    // KONFIGURASI URL WEB APP GOOGLE APPS SCRIPT ANDA
-    // =========================================================================
-    const GAS_URL = "GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT_ANDA";
+  <!-- MODAL PREVIEW FOTO BUKTI -->
+  <div id="photoModal" onclick="closePhotoModal()" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="glass-card rounded-2xl max-w-lg w-full p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h4 id="modalPhotoTitle" class="text-xs font-mono font-bold text-cyan-400">Bukti Foto</h4>
+        <button onclick="closePhotoModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1">✕</button>
+      </div>
+      <div class="bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center min-h-[200px]">
+        <img id="modalPhotoImg" src="" alt="Bukti Pelanggaran" class="max-h-[65vh] w-auto object-contain" />
+      </div>
+      <a id="modalPhotoLink" href="#" target="_blank" class="block text-center text-xs text-cyan-400 hover:underline py-1">
+        Buka ukuran penuh di Google Drive ↗
+      </a>
+    </div>
+  </div>
 
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl text-xs font-semibold shadow-2xl border transition-all duration-300"></div>
+
+  <!-- BOTTOM NAVIGATION BAR (ALA APLIKASI ANDROID) -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 glass-card border-t border-cyan-500/20 px-4 py-2">
+    <div class="max-w-md mx-auto grid grid-cols-2 gap-2">
+      <button onclick="switchTab('input')" id="navInput" class="flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition">
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+        <span class="text-[11px] font-bold">Input Data</span>
+      </button>
+
+      <button onclick="switchTab('laporan')" id="navLaporan" class="flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition">
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <span class="text-[11px] font-bold">Laporan & Grafik</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================================================================== -->
+  <!-- LOGIKA JAVASCRIPT UTAMA                                               -->
+  <!-- ===================================================================== -->
+  <script>
     // State Global
     let masterGuru = [];
     let masterSiswa = [];
     let masterAturan = [];
-    let semuaLaporan = [];
+    let allLaporan = [];
     let filteredLaporan = [];
-    let fotoBase64Terpilih = "";
-    let chartInstance = null;
+    let compressedBase64 = "";
 
-    // Inisialisasi saat halaman dibuka
+    // Instance Grafik Chart.js
+    let charts = { kategori: null, harian: null, mingguan: null, bulanan: null };
+
+    // Inisialisasi saat halaman dimuat
     document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("inputTanggal").value = new Date().toISOString().slice(0, 10);
-      muatDataServer(false);
+      // Set tanggal hari ini secara default pada form input
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("inputTanggal").value = today;
+
+      // Muat data dari cache lokal dulu agar instan, lalu sinkron dari server
+      loadFromLocalCache();
+      fetchAllData(false);
     });
 
-    // Helper Toast Notifikasi
-    function showToast(pesan, tipe = "success") {
-      const box = document.getElementById("toastBox");
-      const content = document.getElementById("toastContent");
-      content.textContent = pesan;
-      content.className = "px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white text-center " +
-        (tipe === "error" ? "bg-rose-600" : "bg-slate-900");
-      box.classList.remove("hidden");
-      clearTimeout(window._toastTimer);
-      window._toastTimer = setTimeout(() => box.classList.add("hidden"), 3500);
-    }
-
     // Navigasi Tab
-    function bukaTab(tab) {
-      const secInput = document.getElementById("sectionInput");
-      const secLaporan = document.getElementById("sectionLaporan");
-      const btnInput = document.getElementById("btnTabInput");
-      const btnLaporan = document.getElementById("btnTabLaporan");
+    function switchTab(tab) {
+      const pageInput = document.getElementById("pageInput");
+      const pageLaporan = document.getElementById("pageLaporan");
+      const navInput = document.getElementById("navInput");
+      const navLaporan = document.getElementById("navLaporan");
 
       if (tab === "input") {
-        secInput.classList.remove("hidden");
-        secLaporan.classList.add("hidden");
-        btnInput.className = "tab-active py-2.5 rounded-lg text-sm font-semibold shadow-sm transition";
-        btnLaporan.className = "tab-inactive py-2.5 rounded-lg text-sm font-semibold shadow-sm transition";
+        pageInput.classList.remove("hidden");
+        pageLaporan.classList.add("hidden");
+        navInput.className = "flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition";
+        navLaporan.className = "flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition";
       } else {
-        secInput.classList.add("hidden");
-        secLaporan.classList.remove("hidden");
-        btnLaporan.className = "tab-active py-2.5 rounded-lg text-sm font-semibold shadow-sm transition";
-        btnInput.className = "tab-inactive py-2.5 rounded-lg text-sm font-semibold shadow-sm transition";
-        terapkanFilter();
+        pageInput.classList.add("hidden");
+        pageLaporan.classList.remove("hidden");
+        navLaporan.className = "flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition";
+        navInput.className = "flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition";
+        applyFilters(); // Render ulang grafik & tabel saat tab laporan dibuka
       }
     }
 
-    // Ambil Data dari Google Apps Script
-    async function muatDataServer(tampilkanNotif = false) {
-      const banner = document.getElementById("loadingBanner");
-      banner.classList.remove("hidden");
+    // Simpan & Muat Cache Lokal (Agar tidak blank saat sinyal lambat)
+    function loadFromLocalCache() {
+      const cached = localStorage.getItem("capps_cache_v1");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          masterGuru = parsed.master?.guru || [];
+          masterSiswa = parsed.master?.siswa || [];
+          masterAturan = parsed.master?.aturan || [];
+          allLaporan = parsed.laporan || [];
+          populateDropdowns();
+          applyFilters();
+        } catch (e) { console.warn("Cache invalid"); }
+      }
+    }
+
+    // Ambil Data dari Google Apps Script (doGet)
+    async function fetchAllData(showNotif = false) {
+      if (!SCRIPT_URL || SCRIPT_URL.includes("GANTI_DENGAN")) {
+        showToast("Harap masukkan URL Web App Apps Script di kode index.html!", "error");
+        return;
+      }
+
+      const loadingBar = document.getElementById("loadingBar");
+      const syncIcon = document.getElementById("syncIcon");
+      loadingBar.classList.remove("hidden");
+      syncIcon.classList.add("animate-spin");
 
       try {
-        const res = await fetch(GAS_URL);
+        const res = await fetch(SCRIPT_URL);
         const data = await res.json();
 
         if (data.status === "success") {
           masterGuru = data.master.guru || [];
           masterSiswa = data.master.siswa || [];
           masterAturan = data.master.aturan || [];
-          semuaLaporan = (data.laporan || []).reverse(); // Terbaru di atas
+          allLaporan = data.laporan || [];
 
-          isiDropdownMaster();
-          terapkanFilter();
-          if (tampilkanNotif) showToast("Data berhasil diperbarui!", "success");
+          localStorage.setItem("capps_cache_v1", JSON.stringify(data));
+          populateDropdowns();
+          applyFilters();
+          if (showNotif) showToast("Database berhasil disinkronkan!", "success");
         } else {
-          showToast(data.message || "Gagal memuat data.", "error");
+          showToast(data.message || "Gagal mengambil data", "error");
         }
       } catch (err) {
-        showToast("Gagal terhubung ke server Apps Script.", "error");
+        showToast("Gagal terhubung ke server. Cek koneksi internet.", "error");
       } finally {
-        banner.classList.add("hidden");
+        loadingBar.classList.add("hidden");
+        syncIcon.classList.remove("animate-spin");
       }
     }
 
-    // Isi Pilihan Dropdown Form & Filter
-    function isiDropdownMaster() {
-      // Guru
+    // Isi Dropdown Guru, Kelas, dan Daftar Siswa Awal di Filter
+    function populateDropdowns() {
+      // 1. Dropdown Guru
       const selGuru = document.getElementById("inputGuru");
-      selGuru.innerHTML = '<option value="">-- Pilih Guru --</option>';
+      selGuru.innerHTML = '<option value="">-- Pilih Nama Guru --</option>';
       masterGuru.forEach(g => {
-        const nama = g.Nama_Guru || g.Nama || Object.values(g)[0];
-        if (nama) selGuru.innerHTML += `<option value="${nama}">${nama}</option>`;
+        if (g.Nama_Guru) {
+          selGuru.innerHTML += `<option value="${g.Nama_Guru}">${g.Nama_Guru}</option>`;
+        }
       });
 
-      // Kelas Unik
-      const kelasUnik = [...new Set(masterSiswa.map(s => String(s.Kelas || "").trim()).filter(Boolean))].sort();
+      // 2. Ekstrak Daftar Kelas Unik
+      const kelasUnik = [...new Set(masterSiswa.map(s => String(s.Kelas).trim()).filter(Boolean))].sort();
+
       const selKelasInput = document.getElementById("inputKelas");
       const selKelasFilter = document.getElementById("filterKelas");
       selKelasInput.innerHTML = '<option value="">-- Pilih Kelas --</option>';
       selKelasFilter.innerHTML = '<option value="">Semua Kelas</option>';
-      kelasUnik.forEach(k => {
-        selKelasInput.innerHTML += `<option value="${k}">${k}</option>`;
-        selKelasFilter.innerHTML += `<option value="${k}">${k}</option>`;
+
+      kelasUnik.forEach(kls => {
+        selKelasInput.innerHTML += `<option value="${kls}">${kls}</option>`;
+        selKelasFilter.innerHTML += `<option value="${kls}">${kls}</option>`;
       });
 
-      // Siswa Filter (Semua)
+      // 3. Isi opsi awal Dropdown Filter Siswa
+      updateFilterSiswaDropdown();
+    }
+
+    // Perbarui opsi Dropdown Filter Siswa berdasarkan Filter Kelas yang dipilih
+    function updateFilterSiswaDropdown() {
+      const kelasFilter = document.getElementById("filterKelas").value;
       const selSiswaFilter = document.getElementById("filterSiswa");
+      const nilaiSebelumnya = selSiswaFilter.value;
+
+      const daftarSiswa = kelasFilter
+        ? masterSiswa.filter(s => String(s.Kelas).trim() === kelasFilter)
+        : masterSiswa;
+
       selSiswaFilter.innerHTML = '<option value="">Semua Siswa</option>';
-      masterSiswa.forEach(s => {
-        const nama = s.Nama_Siswa || s.Nama || "";
-        if (nama) selSiswaFilter.innerHTML += `<option value="${nama}">${nama} (${s.Kelas || "-"})</option>`;
+      daftarSiswa.forEach(s => {
+        if (s.Nama_Siswa) {
+          const infoTambahan = kelasFilter ? (s.NIS ? ` (${s.NIS})` : "") : ` - ${s.Kelas}`;
+          selSiswaFilter.innerHTML += `<option value="${s.Nama_Siswa}">${s.Nama_Siswa}${infoTambahan}</option>`;
+        }
       });
 
-      // Kategori Unik
-      const kategoriUnik = [...new Set(masterAturan.map(a => String(a.Kategori || "").trim()).filter(Boolean))];
-      const selKatInput = document.getElementById("inputKategori");
-      const selKatFilter = document.getElementById("filterKategori");
-      selKatInput.innerHTML = '<option value="">-- Pilih Kategori --</option>';
-      selKatFilter.innerHTML = '<option value="">Semua Kategori</option>';
-      kategoriUnik.forEach(kat => {
-        selKatInput.innerHTML += `<option value="${kat}">${kat}</option>`;
-        selKatFilter.innerHTML += `<option value="${kat}">${kat}</option>`;
-      });
+      // Pertahankan pilihan siswa jika masih ada dalam daftar kelas tersebut
+      if ([...selSiswaFilter.options].some(opt => opt.value === nilaiSebelumnya)) {
+        selSiswaFilter.value = nilaiSebelumnya;
+      } else {
+        selSiswaFilter.value = "";
+      }
     }
 
-    function filterDropdownSiswa() {
-      const kelas = document.getElementById("inputKelas").value;
+    // Cascading Dropdown Form Input: Kelas -> Siswa (Menampilkan Nama + NIS 10 digit)
+    function onKelasChange() {
+      const kelasDipilih = document.getElementById("inputKelas").value;
       const selSiswa = document.getElementById("inputSiswa");
-      selSiswa.innerHTML = '<option value="">-- Pilih Siswa --</option>';
-      if (!kelas) return;
 
-      masterSiswa
-        .filter(s => String(s.Kelas || "").trim() === kelas)
-        .forEach(s => {
-          const nama = s.Nama_Siswa || s.Nama || "";
-          selSiswa.innerHTML += `<option value="${nama}">${nama}</option>`;
-        });
+      if (!kelasDipilih) {
+        selSiswa.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+        selSiswa.disabled = true;
+        return;
+      }
+
+      const siswaKelas = masterSiswa.filter(s => String(s.Kelas).trim() === kelasDipilih);
+      selSiswa.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
+      siswaKelas.forEach(s => {
+        const nisText = s.NIS ? ` (${s.NIS})` : "";
+        selSiswa.innerHTML += `<option value="${s.Nama_Siswa}">${s.Nama_Siswa}${nisText}</option>`;
+      });
+      selSiswa.disabled = false;
     }
 
-    function filterDropdownJenis() {
-      const kategori = document.getElementById("inputKategori").value;
+    // Cascading Dropdown Form Input: Kategori -> Jenis Pelanggaran & Poin
+    function onKategoriChange() {
+      const kategoriDipilih = document.getElementById("inputKategori").value;
       const selJenis = document.getElementById("inputJenis");
-      document.getElementById("inputPoin").value = "";
+      document.getElementById("badgePoinPreview").textContent = "+0 Poin";
+
+      if (!kategoriDipilih) {
+        selJenis.innerHTML = '<option value="">-- Pilih Kategori Terlebih Dahulu --</option>';
+        selJenis.disabled = true;
+        return;
+      }
+
+      const aturanFiltered = masterAturan.filter(a => String(a.Kategori).trim().toLowerCase() === kategoriDipilih.toLowerCase());
       selJenis.innerHTML = '<option value="">-- Pilih Jenis Pelanggaran --</option>';
-      if (!kategori) return;
-
-      masterAturan
-        .filter(a => String(a.Kategori || "").trim() === kategori)
-        .forEach(a => {
-          const jenis = a.Jenis_Pelanggaran || a.Pelanggaran || "";
-          const poin = Number(a.Poin) || 0;
-          selJenis.innerHTML += `<option value="${jenis}" data-poin="${poin}">${jenis} (${poin} Poin)</option>`;
-        });
+      aturanFiltered.forEach((a) => {
+        const poin = Number(a.Poin) || 0;
+        selJenis.innerHTML += `<option value="${a.Jenis_Pelanggaran}" data-poin="${poin}">${a.Jenis_Pelanggaran} (+${poin} Poin)</option>`;
+      });
+      selJenis.disabled = false;
     }
 
-    function isiPoinOtomatis() {
+    // Update Badge Poin saat Jenis Pelanggaran dipilih
+    function onJenisChange() {
       const selJenis = document.getElementById("inputJenis");
-      const opt = selJenis.options[selJenis.selectedIndex];
-      document.getElementById("inputPoin").value = opt ? (opt.getAttribute("data-poin") || 0) : 0;
+      const selectedOption = selJenis.options[selJenis.selectedIndex];
+      const poin = selectedOption ? (selectedOption.getAttribute("data-poin") || 0) : 0;
+      document.getElementById("badgePoinPreview").textContent = `+${poin} Poin`;
     }
 
-    // Kompresi Gambar Sebelum Kirim
-    function prosesPilihFoto(input) {
-      const file = input.files[0];
+    // =========================================================================
+    // KOMPRESI FOTO HEMAT RAM (ANTI LOW MEMORY DI HP)
+    // =========================================================================
+    async function handleImageSelect(event) {
+      const file = event.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const img = new Image();
-        img.onload = function () {
-          const canvas = document.createElement("canvas");
-          const maxWidth = 900;
-          let width = img.width;
-          let height = img.height;
+      const infoEl = document.getElementById("infoKompresi");
+      const previewBox = document.getElementById("previewContainer");
+      const imgPreview = document.getElementById("imgPreview");
 
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
+      infoEl.textContent = "Memproses & mengompresi foto...";
+      previewBox.classList.remove("hidden");
+
+      const MAX_DIM = 800; // Ukuran maksimal sisi terpanjang (hemat RAM & kuota)
+      const QUALITY = 0.70;
+
+      try {
+        let canvas = document.createElement("canvas");
+        let ctx = canvas.getContext("2d");
+        let width = 0;
+        let height = 0;
+
+        // Gunakan createImageBitmap jika didukung (jauh lebih hemat memori HP dibanding FileReader base64)
+        if (window.createImageBitmap) {
+          let bitmap;
+          try {
+            // Downscale langsung saat decode agar RAM HP tidak penuh oleh foto 12MP-50MP
+            bitmap = await createImageBitmap(file, { resizeWidth: MAX_DIM, resizeQuality: "medium" });
+            width = bitmap.width;
+            height = bitmap.height;
+          } catch (errOpt) {
+            bitmap = await createImageBitmap(file);
+            width = bitmap.width;
+            height = bitmap.height;
+            if (width > MAX_DIM || height > MAX_DIM) {
+              if (width >= height) {
+                height = Math.round((height * MAX_DIM) / width);
+                width = MAX_DIM;
+              } else {
+                width = Math.round((width * MAX_DIM) / height);
+                height = MAX_DIM;
+              }
+            }
           }
 
           canvas.width = width;
           canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
+          ctx.drawImage(bitmap, 0, 0, width, height);
+          bitmap.close(); // Segera bebaskan memori bitmap dari RAM
+        } else {
+          // Fallback menggunakan ObjectURL (lebih ringan dari FileReader DataURL)
+          const objectUrl = URL.createObjectURL(file);
+          await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              width = img.width;
+              height = img.height;
+              if (width > MAX_DIM || height > MAX_DIM) {
+                if (width >= height) {
+                  height = Math.round((height * MAX_DIM) / width);
+                  width = MAX_DIM;
+                } else {
+                  width = Math.round((width * MAX_DIM) / height);
+                  height = MAX_DIM;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              ctx.drawImage(img, 0, 0, width, height);
+              URL.revokeObjectURL(objectUrl); // Bebaskan memori ObjectURL
+              resolve();
+            };
+            img.onerror = (e) => {
+              URL.revokeObjectURL(objectUrl);
+              reject(e);
+            };
+            img.src = objectUrl;
+          });
+        }
 
-          fotoBase64Terpilih = canvas.toDataURL("image/jpeg", 0.75);
-          document.getElementById("previewFotoImg").src = fotoBase64Terpilih;
-          document.getElementById("previewFotoContainer").classList.remove("hidden");
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+        // Hasilkan base64 terkompresi
+        compressedBase64 = canvas.toDataURL("image/jpeg", QUALITY);
+        imgPreview.src = compressedBase64;
+
+        // Kosongkan buffer canvas agar RAM langsung lega
+        canvas.width = 0;
+        canvas.height = 0;
+        canvas = null;
+
+        const sizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
+        infoEl.textContent = `Terkompresi: ~${sizeKB} KB (${width}x${height}px)`;
+      } catch (err) {
+        console.error("Gagal memproses foto:", err);
+        showToast("Memori HP penuh saat memuat foto. Tutup aplikasi lain lalu coba lagi.", "error");
+        clearImage();
+      }
     }
 
-    function hapusFotoTerpilih() {
-      fotoBase64Terpilih = "";
-      document.getElementById("previewFotoImg").src = "";
-      document.getElementById("previewFotoContainer").classList.add("hidden");
+    function clearImage() {
+      compressedBase64 = "";
+      document.getElementById("imgPreview").src = "";
+      document.getElementById("fileCamera").value = "";
+      document.getElementById("fileGallery").value = "";
+      document.getElementById("previewContainer").classList.add("hidden");
     }
 
-    // Submit Form Pelanggaran
+    // =========================================================================
+    // KIRIM FORM KE GOOGLE APPS SCRIPT (doPost)
+    // =========================================================================
     document.getElementById("formPelanggaran").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const btn = document.getElementById("btnSimpan");
-      btn.disabled = true;
-      btn.textContent = "Menyimpan data...";
+
+      const selJenis = document.getElementById("inputJenis");
+      const poinVal = selJenis.options[selJenis.selectedIndex]?.getAttribute("data-poin") || 0;
 
       const payload = {
         tanggal: document.getElementById("inputTanggal").value,
@@ -483,165 +764,323 @@
         kelas: document.getElementById("inputKelas").value,
         siswa: document.getElementById("inputSiswa").value,
         kategori: document.getElementById("inputKategori").value,
-        jenis: document.getElementById("inputJenis").value,
-        poin: Number(document.getElementById("inputPoin").value) || 0,
-        fotoBase64: fotoBase64Terpilih
+        jenis: selJenis.value,
+        poin: Number(poinVal),
+        fotoBase64: compressedBase64
       };
 
+      const btnSubmit = document.getElementById("btnSubmit");
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span><span>MENGIRIM DATA & FOTO...</span>`;
+
       try {
-        const res = await fetch(GAS_URL, {
+        const res = await fetch(SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify(payload)
         });
         const result = await res.json();
 
         if (result.status === "success") {
-          showToast("Pelanggaran berhasil disimpan!", "success");
-          document.getElementById("formPelanggaran").reset();
-          document.getElementById("inputTanggal").value = new Date().toISOString().slice(0, 10);
-          hapusFotoTerpilih();
-          muatDataServer(false);
+          showToast(`Tersimpan! File: ${result.fileName}`, "success");
+          document.getElementById("inputSiswa").value = "";
+          document.getElementById("inputKategori").value = "";
+          document.getElementById("inputJenis").innerHTML = '<option value="">-- Pilih Kategori Terlebih Dahulu --</option>';
+          document.getElementById("inputJenis").disabled = true;
+          document.getElementById("badgePoinPreview").textContent = "+0 Poin";
+          clearImage();
+
+          fetchAllData(false);
         } else {
-          showToast(result.message || "Gagal menyimpan data.", "error");
+          showToast(result.message || "Gagal menyimpan data", "error");
         }
       } catch (err) {
-        showToast("Terjadi kesalahan jaringan saat menyimpan.", "error");
+        showToast("Terjadi kesalahan jaringan saat mengirim data.", "error");
       } finally {
-        btn.disabled = false;
-        btn.textContent = "Simpan Catatan Pelanggaran";
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+          <span>SIMPAN CATATAN PELANGGARAN</span>`;
       }
     });
 
     // =========================================================================
-    // FILTER, GRAFIK, TABEL & PREVIEW FOTO BUKTI
+    // LOGIKA FILTER, RINGKASAN TOTAL POIN & RENDER TABEL
     // =========================================================================
-    function terapkanFilter() {
-      const fKelas = document.getElementById("filterKelas").value;
-      const fSiswa = document.getElementById("filterSiswa").value;
-      const fKategori = document.getElementById("filterKategori").value;
+    function normalizeDateISO(rawDate) {
+      if (!rawDate) return "";
+      const str = String(rawDate).trim();
 
-      filteredLaporan = semuaLaporan.filter(r => {
-        const cocokKelas = !fKelas || String(r.Kelas || "").trim() === fKelas;
-        const cocokSiswa = !fSiswa || String(r.Nama_Siswa || "").trim() === fSiswa;
-        const cocokKat = !fKategori || String(r.Kategori || "").trim() === fKategori;
-        return cocokKelas && cocokSiswa && cocokKat;
+      // 1. Format ISO YYYY-MM-DD atau YYYY/MM/DD
+      const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      if (isoMatch) {
+        return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}-${isoMatch[3].padStart(2, "0")}`;
+      }
+
+      // 2. Format DD-MM-YYYY atau MM-DD-YYYY (dengan tanda - atau /)
+      const slashMatch = str.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+      if (slashMatch) {
+        const p1 = parseInt(slashMatch[1], 10);
+        const p2 = parseInt(slashMatch[2], 10);
+        const y = slashMatch[3];
+        if (p1 > 12) {
+          return `${y}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
+        } else if (p2 > 12) {
+          return `${y}-${String(p1).padStart(2, "0")}-${String(p2).padStart(2, "0")}`;
+        }
+        return `${y}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
+      }
+
+      // 3. Format string Date bawaan JS/Apps Script
+      const monthMap = {
+        jan: "01", feb: "02", mar: "03", apr: "04", may: "05", mei: "05",
+        jun: "06", jul: "07", aug: "08", agu: "08", sep: "09",
+        oct: "10", okt: "10", nov: "11", dec: "12", des: "12"
+      };
+      const textMonthMatch = str.match(/\b([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})\b/);
+      if (textMonthMatch) {
+        const mKey = textMonthMatch[1].substring(0, 3).toLowerCase();
+        if (monthMap[mKey]) {
+          return `${textMonthMatch[3]}-${monthMap[mKey]}-${textMonthMatch[2].padStart(2, "0")}`;
+        }
+      }
+      const shortDayMonthMatch = str.match(/^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+([A-Za-z]{3})\s+(\d{1,2})$/i);
+      if (shortDayMonthMatch) {
+        const mKey = shortDayMonthMatch[1].toLowerCase();
+        if (monthMap[mKey]) {
+          const fallbackYear = new Date().getFullYear();
+          return `${fallbackYear}-${monthMap[mKey]}-${shortDayMonthMatch[2].padStart(2, "0")}`;
+        }
+      }
+      const dmyTextMatch = str.match(/\b(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})\b/);
+      if (dmyTextMatch) {
+        const mKey = dmyTextMatch[2].substring(0, 3).toLowerCase();
+        if (monthMap[mKey]) {
+          return `${dmyTextMatch[3]}-${monthMap[mKey]}-${dmyTextMatch[1].padStart(2, "0")}`;
+        }
+      }
+
+      // 4. Fallback terakhir new Date()
+      const parsed = new Date(str);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, "0");
+        const d = String(parsed.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+      return "";
+    }
+
+    function applyFilters() {
+      const tglDari = normalizeDateISO(document.getElementById("filterTglDari").value);
+      const tglSampai = normalizeDateISO(document.getElementById("filterTglSampai").value);
+      const kelas = document.getElementById("filterKelas").value;
+      const siswaDipilih = document.getElementById("filterSiswa").value;
+
+      filteredLaporan = allLaporan.map(item => ({
+        ...item,
+        TanggalNormalized: normalizeDateISO(item.Tanggal)
+      })).filter(item => {
+        const itemTgl = item.TanggalNormalized;
+
+        if (tglDari && (!itemTgl || itemTgl < tglDari)) return false;
+        if (tglSampai && (!itemTgl || itemTgl > tglSampai)) return false;
+        if (kelas && String(item.Kelas).trim() !== kelas) return false;
+        if (siswaDipilih && String(item.Nama_Siswa).trim() !== siswaDipilih) return false;
+
+        return true;
       });
 
-      const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
-      document.getElementById("statTotalKasus").textContent = filteredLaporan.length;
-      document.getElementById("statTotalPoin").textContent = totalPoin;
+      filteredLaporan.sort((a, b) => String(b.TanggalNormalized).localeCompare(String(a.TanggalNormalized)));
 
-      renderTabelLaporan();
-      renderGrafikKategori();
+      updateSummaryAndTable();
+      renderAllCharts();
     }
 
-    function resetFilter() {
+    function resetFilters() {
+      document.getElementById("filterTglDari").value = "";
+      document.getElementById("filterTglSampai").value = "";
       document.getElementById("filterKelas").value = "";
+      updateFilterSiswaDropdown();
       document.getElementById("filterSiswa").value = "";
-      document.getElementById("filterKategori").value = "";
-      terapkanFilter();
+      applyFilters();
     }
 
-    function normalisasiLinkFotoDrive(url) {
-      if (!url || url === "-") return "";
-      const str = String(url).trim();
-      const matchId = str.match(/[-\w]{25,}/);
-      if (matchId) {
-        return `https://drive.google.com/thumbnail?id=${matchId[0]}&sz=w1000`;
-      }
-      return str;
-    }
+    function updateSummaryAndTable() {
+      const totalKasus = filteredLaporan.length;
+      const totalPoin = filteredLaporan.reduce((sum, row) => sum + (Number(row.Poin) || 0), 0);
+      const rataPoin = totalKasus > 0 ? (totalPoin / totalKasus).toFixed(1) : 0;
 
-    function renderTabelLaporan() {
-      const tbody = document.getElementById("tabelLaporanBody");
-      if (filteredLaporan.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-slate-400">Tidak ada data yang sesuai filter.</td></tr>';
+      document.getElementById("statTotalKasus").textContent = totalKasus;
+      document.getElementById("statTotalPoin").textContent = totalPoin;
+      document.getElementById("statRataPoin").textContent = rataPoin;
+      document.getElementById("labelJumlahBaris").textContent = totalKasus;
+      document.getElementById("tableFooterTotalPoin").textContent = totalPoin;
+
+      const tbody = document.getElementById("tableBody");
+      if (totalKasus === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Tidak ada data pelanggaran sesuai filter yang dipilih.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filteredLaporan.map(r => {
-        const tgl = r.Tanggal || "-";
-        const linkThumb = normalisasiLinkFotoDrive(r.Link_Foto || r.Link_Foto_Drive || r.Foto);
-        const tombolFoto = linkThumb
-          ? `<button onclick="bukaModalFoto('${linkThumb}', '${(r.Nama_Siswa || "").replace(/'/g, "")}')" class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg text-[11px] font-semibold">Lihat</button>`
-          : `<span class="text-slate-300">-</span>`;
+      tbody.innerHTML = filteredLaporan.map(row => {
+        const hasPhoto = row.Link_Foto_Drive && row.Link_Foto_Drive !== "-";
+        const badgeColor = row.Kategori === "Kelakuan"
+          ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
+          : row.Kategori === "Kerapian"
+          ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+          : "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
 
         return `
-          <tr class="hover:bg-slate-50">
-            <td class="py-2.5 px-3 whitespace-nowrap text-slate-600">${tgl}</td>
-            <td class="py-2.5 px-3">
-              <div class="font-bold text-slate-900">${r.Nama_Siswa || "-"}</div>
-              <div class="text-[11px] text-slate-500">Kelas ${r.Kelas || "-"}</div>
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="p-3 font-mono text-[11px] text-slate-300 whitespace-nowrap">${row.TanggalNormalized || row.Tanggal}</td>
+            <td class="p-3 font-semibold text-white">
+              ${row.Nama_Siswa}
+              <div class="text-[10px] text-slate-400 font-normal">Guru: ${row.Nama_Guru}</div>
             </td>
-            <td class="py-2.5 px-3">
-              <div class="font-medium text-slate-800">${r.Jenis_Pelanggaran || "-"}</div>
-              <div class="text-[10px] text-slate-400">${r.Kategori || "-"} • ${r.Nama_Guru || "-"}</div>
+            <td class="p-3 font-mono text-slate-300 whitespace-nowrap">${row.Kelas}</td>
+            <td class="p-3">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-semibold border ${badgeColor} mb-1">${row.Kategori}</span>
+              <div class="text-slate-200">${row.Jenis_Pelanggaran}</div>
             </td>
-            <td class="py-2.5 px-3 text-center font-bold text-rose-600">${Number(r.Poin) || 0}</td>
-            <td class="py-2.5 px-3 text-center">${tombolFoto}</td>
+            <td class="p-3 text-center font-mono font-bold text-rose-400">+${row.Poin}</td>
+            <td class="p-3 text-center">
+              ${hasPhoto
+                ? `<button onclick="openPhotoModal('${row.Link_Foto_Drive}', '${row.Nama_File_Foto}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 text-[11px] font-semibold">Lihat</button>`
+                : `<span class="text-slate-600 text-[11px]">-</span>`}
+            </td>
           </tr>
         `;
       }).join("");
     }
 
-    function bukaModalFoto(url, namaSiswa) {
-      const modal = document.getElementById("modalFoto");
-      document.getElementById("modalFotoJudul").textContent = "Bukti Pelanggaran: " + namaSiswa;
-      document.getElementById("modalFotoImg").src = url;
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    }
+    // =========================================================================
+    // RENDER 4 GRAFIK STATISTIK (CHART.JS)
+    // =========================================================================
+    function renderAllCharts() {
+      Chart.defaults.color = "#94a3b8";
+      Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
 
-    function tutupModalFoto() {
-      const modal = document.getElementById("modalFoto");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-      document.getElementById("modalFotoImg").src = "";
-    }
-
-    function renderGrafikKategori() {
-      const ctx = document.getElementById("chartPelanggaran").getContext("2d");
-      const hitungPerKategori = {};
-
+      // 1. Grafik Kategori
+      const katCounts = { "Kelakuan": 0, "Kerajinan & Pembiasaan": 0, "Kerapian": 0 };
       filteredLaporan.forEach(r => {
-        const kat = r.Kategori || "Lainnya";
-        hitungPerKategori[kat] = (hitungPerKategori[kat] || 0) + 1;
+        if (katCounts[r.Kategori] !== undefined) katCounts[r.Kategori]++;
+        else katCounts[r.Kategori] = (katCounts[r.Kategori] || 0) + 1;
       });
 
-      const labels = Object.keys(hitungPerKategori);
-      const values = Object.values(hitungPerKategori);
+      drawChart("kategori", "chartKategori", "doughnut", Object.keys(katCounts), Object.values(katCounts),
+        ["#f43f5e", "#06b6d4", "#f59e0b"], "Jumlah Kasus");
 
-      if (chartInstance) chartInstance.destroy();
+      // 2. Grafik Harian (10 tanggal terakhir dari hasil filter)
+      const dailyMap = {};
+      filteredLaporan.forEach(r => {
+        const tglKey = r.TanggalNormalized || r.Tanggal; dailyMap[tglKey] = (dailyMap[tglKey] || 0) + 1;
+      });
+      const sortedDays = Object.keys(dailyMap).sort().slice(-10);
+      drawChart("harian", "chartHarian", "bar", sortedDays, sortedDays.map(d => dailyMap[d]),
+        "#06b6d4", "Kasus Harian");
 
-      chartInstance = new Chart(ctx, {
-        type: "bar",
+      // 3. Grafik Mingguan
+      const weeklyMap = {};
+      filteredLaporan.forEach(r => {
+        const d = new Date(r.TanggalNormalized || r.Tanggal);
+        if (!isNaN(d)) {
+          const weekLabel = getWeekLabel(d);
+          weeklyMap[weekLabel] = (weeklyMap[weekLabel] || 0) + 1;
+        }
+      });
+      const sortedWeeks = Object.keys(weeklyMap).sort().slice(-8);
+      drawChart("mingguan", "chartMingguan", "line", sortedWeeks, sortedWeeks.map(w => weeklyMap[w]),
+        "#6366f1", "Kasus Mingguan");
+
+      // 4. Grafik Bulanan
+      const namaBulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const monthlyMap = {};
+      filteredLaporan.forEach(r => {
+        const ym = normalizeYearMonth(r.Tanggal);
+        if (ym) {
+          monthlyMap[ym] = (monthlyMap[ym] || 0) + 1;
+        }
+      });
+      const sortedMonths = Object.keys(monthlyMap).sort();
+      const monthLabels = sortedMonths.map(ym => {
+        const [y, m] = ym.split("-");
+        const idxBulan = parseInt(m, 10) - 1;
+        return `${namaBulan[idxBulan] || m} ${y}`;
+      });
+      drawChart("bulanan", "chartBulanan", "bar", monthLabels, sortedMonths.map(m => monthlyMap[m]),
+        "#10b981", "Kasus Bulanan");
+    }
+
+    function drawChart(key, canvasId, type, labels, data, colors, labelText) {
+      if (charts[key]) charts[key].destroy();
+      const ctx = document.getElementById(canvasId).getContext("2d");
+      charts[key] = new Chart(ctx, {
+        type: type,
         data: {
           labels: labels.length ? labels : ["Belum ada data"],
           datasets: [{
-            label: "Jumlah Kasus",
-            data: values.length ? values : [0],
-            backgroundColor: "#0f172a",
-            borderRadius: 6
+            label: labelText,
+            data: data.length ? data : [0],
+            backgroundColor: Array.isArray(colors) ? colors : colors + "33",
+            borderColor: Array.isArray(colors) ? "#0f172a" : colors,
+            borderWidth: 2,
+            borderRadius: type === "bar" ? 6 : 0,
+            tension: 0.35,
+            fill: type === "line"
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 } }
+          plugins: {
+            legend: {
+              display: type === "doughnut",
+              position: "bottom",
+              labels: { boxWidth: 12, font: { size: 11 } }
+            }
+          },
+          scales: type === "doughnut" ? {} : {
+            x: { grid: { color: "rgba(148, 163, 184, 0.08)" }, ticks: { font: { size: 10 } } },
+            y: { beginAtZero: true, grid: { color: "rgba(148, 163, 184, 0.08)" }, ticks: { precision: 0, font: { size: 10 } } }
           }
         }
       });
     }
 
+    function normalizeYearMonth(rawDate) {
+      if (!rawDate) return "";
+      const str = String(rawDate).trim();
+      const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})/);
+      if (isoMatch) {
+        return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}`;
+      }
+      const parsed = new Date(str);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, "0");
+        return `${y}-${m}`;
+      }
+      return "";
+    }
+
+    function getWeekLabel(date) {
+      const start = new Date(date.getFullYear(), 0, 1);
+      const diff = (date - start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);
+      const oneDay = 1000 * 60 * 60 * 24;
+      const day = Math.floor(diff / oneDay);
+      const week = Math.ceil((day + 1) / 7);
+      return `Mgg ${String(week).padStart(2, "0")} (${date.getFullYear()})`;
+    }
+
     // =========================================================================
-    // EXPORT EXCEL & PDF VIA GOOGLE APPS SCRIPT (UNDUHAN RESMI HTTPS ANDROID)
+    // REVISI: EXPORT EXCEL (.XLSX) & PDF VIA APPS SCRIPT (UNDUHAN HTTPS ANDROID)
     // =========================================================================
     async function unduhViaAppsScript(fileName, mimeType, base64Data) {
       showToast("Menyiapkan file untuk diunduh...", "success");
       try {
-        const res = await fetch(GAS_URL, {
+        const res = await fetch(SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify({
             action: "exportFile",
@@ -670,27 +1109,33 @@
       const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
       const rows = filteredLaporan.map((r, i) => ({
         "No": i + 1,
-        "Tanggal": r.Tanggal || "-",
-        "Nama Siswa": r.Nama_Siswa || "-",
-        "Kelas": r.Kelas || "-",
-        "Kategori": r.Kategori || "-",
-        "Jenis Pelanggaran": r.Jenis_Pelanggaran || "-",
+        "Tanggal": r.TanggalNormalized || r.Tanggal,
+        "Nama Siswa": r.Nama_Siswa,
+        "Kelas": r.Kelas,
+        "Kategori": r.Kategori,
+        "Jenis Pelanggaran": r.Jenis_Pelanggaran,
         "Poin": Number(r.Poin) || 0,
-        "Guru Pencatat": r.Nama_Guru || "-",
-        "File Bukti": r.Nama_File_Foto || "-"
+        "Guru Pencatat": r.Nama_Guru,
+        "File Bukti": r.Nama_File_Foto
       }));
 
       rows.push({
-        "No": "", "Tanggal": "", "Nama Siswa": "", "Kelas": "",
-        "Kategori": "", "Jenis Pelanggaran": "TOTAL AKUMULASI POIN",
-        "Poin": totalPoin, "Guru Pencatat": "", "File Bukti": ""
+        "No": "",
+        "Tanggal": "",
+        "Nama Siswa": "",
+        "Kelas": "",
+        "Kategori": "",
+        "Jenis Pelanggaran": "TOTAL AKUMULASI POIN",
+        "Poin": totalPoin,
+        "Guru Pencatat": "",
+        "File Bukti": ""
       });
 
       const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan_CaPPS");
 
-      const fileName = `Laporan_CaPPS_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const fileName = `Laporan_CaPPS_${new Date().toISOString().slice(0,10)}.xlsx`;
       const base64Str = XLSX.write(workbook, { bookType: "xlsx", type: "base64" });
       const mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -719,12 +1164,12 @@
 
       const tableBody = filteredLaporan.map((r, i) => [
         i + 1,
-        r.Tanggal || "-",
-        r.Nama_Siswa || "-",
-        r.Kelas || "-",
-        r.Kategori || "-",
-        r.Jenis_Pelanggaran || "-",
-        Number(r.Poin) || 0
+        r.TanggalNormalized || r.Tanggal,
+        r.Nama_Siswa,
+        r.Kelas,
+        r.Kategori,
+        r.Jenis_Pelanggaran,
+        r.Poin
       ]);
 
       doc.autoTable({
@@ -738,11 +1183,38 @@
         footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: "bold" }
       });
 
-      const fileName = `Laporan_CaPPS_${new Date().toISOString().slice(0, 10)}.pdf`;
+      const fileName = `Laporan_CaPPS_${new Date().toISOString().slice(0,10)}.pdf`;
       const pdfBase64 = doc.output("datauristring").split(",")[1];
       const mimeType = "application/pdf";
 
       unduhViaAppsScript(fileName, mimeType, pdfBase64);
+    }
+
+    // =========================================================================
+    // MODAL FOTO & NOTIFIKASI TOAST
+    // =========================================================================
+    function openPhotoModal(url, filename) {
+      document.getElementById("modalPhotoTitle").textContent = filename || "Bukti Foto";
+      document.getElementById("modalPhotoImg").src = url;
+      document.getElementById("modalPhotoLink").href = url;
+      document.getElementById("photoModal").classList.remove("hidden");
+    }
+
+    function closePhotoModal() {
+      document.getElementById("photoModal").classList.add("hidden");
+      document.getElementById("modalPhotoImg").src = "";
+    }
+
+    function showToast(msg, type = "success") {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.className = `fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-2xl border transition-all duration-300 ${
+        type === "error"
+          ? "bg-rose-950/95 text-rose-200 border-rose-500/50"
+          : "bg-emerald-950/95 text-emerald-200 border-emerald-500/50"
+      }`;
+      toast.classList.remove("hidden");
+      setTimeout(() => toast.classList.add("hidden"), 3500);
     }
   </script>
 </body>
