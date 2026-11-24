@@ -1195,7 +1195,15 @@
     // =========================================================================
     function openPhotoModal(url, filename) {
       document.getElementById("modalPhotoTitle").textContent = filename || "Bukti Foto";
-      document.getElementById("modalPhotoImg").src = url;
+      
+      // Ekstrak ID file Google Drive dan ubah ke format thumbnail agar tidak diblokir
+      let finalUrl = url;
+      const matchId = String(url).match(/[-\w]{25,}/);
+      if (matchId) {
+        finalUrl = `https://drive.google.com/thumbnail?id=${matchId[0]}&sz=w1000`;
+      }
+
+      document.getElementById("modalPhotoImg").src = finalUrl;
       document.getElementById("modalPhotoLink").href = url;
       document.getElementById("photoModal").classList.remove("hidden");
     }
