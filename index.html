@@ -2431,17 +2431,32 @@
       drawChart("harian", "chartHarian", "bar", sortedDays, sortedDays.map(d => dailyMap[d]),
         "#06b6d4", "Kasus Harian");
 
+      // 3. Line Chart: Tren Mingguan (Anti-timezone shift & urut kronologis)
       const weeklyMap = {};
       filteredLaporan.forEach(r => {
-        const d = new Date(r.TanggalNormalized || r.Tanggal);
-        if (!isNaN(d)) {
-          const weekLabel = getWeekLabel(d);
-          weeklyMap[weekLabel] = (weeklyMap[weekLabel] || 0) + 1;
+        const iso = r.TanggalNormalized || normalizeDateISO(r.Tanggal);
+        if (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+          const [y, m, day] = iso.split("-").map(Number);
+          const localDate = new Date(y, m - 1, day);
+          if (!isNaN(localDate.getTime())) {
+            const weekObj = getWeekInfo(localDate);
+            if (!weeklyMap[weekObj.sortKey]) {
+              weeklyMap[weekObj.sortKey] = { label: weekObj.label, count: 0 };
+            }
+            weeklyMap[weekObj.sortKey].count += 1;
+          }
         }
       });
-      const sortedWeeks = Object.keys(weeklyMap).sort().slice(-8);
-      drawChart("mingguan", "chartMingguan", "line", sortedWeeks, sortedWeeks.map(w => weeklyMap[w]),
-        "#6366f1", "Kasus Mingguan");
+      const sortedWeekKeys = Object.keys(weeklyMap).sort().slice(-8);
+      drawChart(
+        "mingguan",
+        "chartMingguan",
+        "line",
+        sortedWeekKeys.map(k => weeklyMap[k].label),
+        sortedWeekKeys.map(k => weeklyMap[k].count),
+        "#6366f1",
+        "Kasus Mingguan"
+      );
 
       const namaBulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
       const monthlyMap = {};
@@ -2451,6 +2466,7 @@
           monthlyMap[ym] = (monthlyMap[ym] || 0) + 1;
         }
       });
+      
       const sortedMonths = Object.keys(monthlyMap).sort();
       const monthLabels = sortedMonths.map(ym => {
         const [y, m] = ym.split("-");
@@ -2475,6 +2491,9 @@
             borderColor: Array.isArray(colors) ? "#0f172a" : colors,
             borderWidth: 2,
             borderRadius: type === "bar" ? 6 : 0,
+            pointRadius: type === "line" ? 4 : 0,
+            pointHoverRadius: type === "line" ? 6 : 0,
+            pointBackgroundColor: Array.isArray(colors) ? "#6366f1" : colors,
             tension: 0.35,
             fill: type === "line"
           }]
@@ -2513,13 +2532,17 @@
       return "";
     }
 
-    function getWeekLabel(date) {
+    function getWeekInfo(date) {
       const start = new Date(date.getFullYear(), 0, 1);
-      const diff = (date - start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);
       const oneDay = 1000 * 60 * 60 * 24;
-      const day = Math.floor(diff / oneDay);
-      const week = Math.ceil((day + 1) / 7);
-      return `Mgg ${String(week).padStart(2, "0")} (${date.getFullYear()})`;
+      const dayOfYear = Math.floor((date - start) / oneDay);
+      const week = Math.ceil((dayOfYear + start.getDay() + 1) / 7);
+      const weekStr = String(week).padStart(2, "0");
+      const year = date.getFullYear();
+      return {
+        sortKey: `${year}-W${weekStr}`,
+        label: `Mgg ${weekStr} (${year})`
+      };
     }
 
     // =========================================================================
