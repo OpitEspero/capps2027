@@ -75,7 +75,6 @@
       border-color: #06b6d4;
       box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
     }
-    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #090d16; }
     ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
@@ -87,7 +86,6 @@
   <!-- KONFIGURASI URL GOOGLE APPS SCRIPT (/exec)                            -->
   <!-- ===================================================================== -->
   <script>
-    // URL WEB APP (/exec) DARI APPS SCRIPT ANDA
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuLBLW1DkwnTjTckcUam-UnIPIz_MjbZpGCqU6vS9KksDBPE-t7BCX-hdKnrROlfddnQ/exec";
   </script>
 
@@ -108,7 +106,7 @@
         </div>
       </div>
 
-      <!-- Grup Tombol Header: Impor Master (Khusus Admin), Sinkron, & Login Admin -->
+      <!-- Grup Tombol Header: Impor Master (Khusus Admin), Sinkron, & Login/Logout Admin -->
       <div class="flex items-center gap-1.5 sm:gap-2">
         <label id="btnImportMasterWrap" title="Impor Master_Guru, Master_Siswa, & Master_Aturan dari Excel (.xlsx)" class="hidden cursor-pointer flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-500/40 text-[11px] sm:text-xs font-medium text-indigo-300 transition active:scale-95">
           <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -125,7 +123,7 @@
           <span>Sinkron</span>
         </button>
 
-        <button onclick="handleAdminAuthClick()" id="btnAdminAuth" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-[11px] sm:text-xs font-bold text-amber-300 transition active:scale-95">
+        <button type="button" onclick="handleAdminAuthClick()" id="btnAdminAuth" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-[11px] sm:text-xs font-bold text-amber-300 transition active:scale-95">
           <svg id="iconAdminLock" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
           </svg>
@@ -187,7 +185,7 @@
             <input type="date" id="inputTanggal" required class="w-full rounded-xl px-3.5 py-2.5 text-sm input-cyber font-mono" />
           </div>
 
-          <!-- 2. Nama Guru Pencatat (Diingat Otomatis di Perangkat) -->
+          <!-- 2. Nama Guru Pencatat -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label class="block text-xs font-semibold text-slate-300">2. Nama Guru Pencatat <span class="text-rose-400">*</span></label>
@@ -198,7 +196,7 @@
             </select>
           </div>
 
-          <!-- Pencarian Cepat Nama / NIS Siswa (Lintas Kelas) -->
+          <!-- Pencarian Cepat Nama / NIS Siswa -->
           <div class="p-3 rounded-xl bg-slate-900/75 border border-slate-800 space-y-2">
             <label class="block text-[11px] font-semibold text-cyan-300 flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -223,7 +221,7 @@
               </select>
             </div>
 
-            <!-- 4. Nama Siswa (Otomatis sesuai Kelas) -->
+            <!-- 4. Nama Siswa -->
             <div>
               <div class="flex items-center justify-between mb-1.5">
                 <label class="block text-xs font-semibold text-slate-300">4. Nama Siswa <span class="text-rose-400">*</span></label>
@@ -260,9 +258,7 @@
               7. Bukti Foto Pelanggaran <span class="text-slate-400 font-normal">(Kompresi Otomatis)</span>
             </label>
 
-            <!-- Dua tombol terpisah: Kamera Langsung vs Galeri -->
             <div class="grid grid-cols-2 gap-3">
-              <!-- Input Kamera Langsung -->
               <label class="cursor-pointer flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-dashed border-cyan-500/50 text-cyan-300 transition active:scale-95">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
@@ -272,7 +268,6 @@
                 <input type="file" id="fileCamera" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelect(event)" />
               </label>
 
-              <!-- Input Galeri / File -->
               <label class="cursor-pointer flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-dashed border-indigo-500/50 text-indigo-300 transition active:scale-95">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -282,7 +277,6 @@
               </label>
             </div>
 
-            <!-- Area Preview Foto Terkompresi -->
             <div id="previewContainer" class="hidden mt-3 relative rounded-xl overflow-hidden border border-slate-700 bg-slate-900/90 p-2">
               <img id="imgPreview" src="" alt="Preview Bukti" class="w-full max-h-60 object-contain rounded-lg" />
               <div class="flex items-center justify-between mt-2 px-1">
@@ -292,7 +286,6 @@
             </div>
           </div>
 
-          <!-- Tombol Submit -->
           <div class="pt-2">
             <button type="submit" id="btnSubmit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-cyan-500/25 transition active:scale-[0.98] flex items-center justify-center gap-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -310,7 +303,6 @@
     <!-- =================================================================== -->
     <section id="pageLaporan" class="hidden space-y-5">
 
-      <!-- Panel Filter Data -->
       <div class="glass-card rounded-2xl p-4 sm:p-5">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
@@ -323,24 +315,20 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <!-- Tanggal Dari -->
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Dari Tanggal</label>
             <input type="date" id="filterTglDari" onchange="applyFilters()" oninput="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber font-mono" />
           </div>
-          <!-- Tanggal Sampai -->
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Sampai Tanggal</label>
             <input type="date" id="filterTglSampai" onchange="applyFilters()" oninput="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber font-mono" />
           </div>
-          <!-- Filter Kelas -->
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Kelas</label>
             <select id="filterKelas" onchange="updateFilterSiswaDropdown(); applyFilters();" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber">
               <option value="">Semua Kelas</option>
             </select>
           </div>
-          <!-- Filter Nama Siswa (Dropdown dinamis mengikuti Filter Kelas) -->
           <div>
             <label class="block text-[11px] text-slate-400 mb-1">Nama Siswa</label>
             <select id="filterSiswa" onchange="applyFilters()" class="w-full rounded-lg px-2.5 py-2 text-xs input-cyber">
@@ -350,7 +338,6 @@
         </div>
       </div>
 
-      <!-- KARTU RINGKASAN & TOTAL POIN BERDASARKAN FILTER -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
         <div class="glass-card rounded-2xl p-4 border-l-4 border-l-cyan-400">
           <p class="text-[11px] text-slate-400 uppercase tracking-wider">Total Kasus (Filter)</p>
@@ -366,9 +353,7 @@
         </div>
       </div>
 
-      <!-- 4 GRAFIK STATISTIK -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Grafik Kategori Pelanggaran -->
         <div class="glass-card rounded-2xl p-4">
           <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Statistik per Kategori</h3>
           <div class="h-52 relative">
@@ -376,7 +361,6 @@
           </div>
         </div>
 
-        <!-- Grafik Harian -->
         <div class="glass-card rounded-2xl p-4">
           <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Tren Pelanggaran Harian</h3>
           <div class="h-52 relative">
@@ -384,7 +368,6 @@
           </div>
         </div>
 
-        <!-- Grafik Mingguan -->
         <div class="glass-card rounded-2xl p-4">
           <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Tren Pelanggaran Mingguan</h3>
           <div class="h-52 relative">
@@ -392,7 +375,6 @@
           </div>
         </div>
 
-        <!-- Grafik Bulanan -->
         <div class="glass-card rounded-2xl p-4">
           <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Tren Pelanggaran Bulanan</h3>
           <div class="h-52 relative">
@@ -401,7 +383,6 @@
         </div>
       </div>
 
-      <!-- TABEL RINCIAN & TOMBOL EXPORT PDF / EXCEL -->
       <div class="glass-card rounded-2xl p-4 sm:p-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
@@ -493,7 +474,6 @@
           </div>
         </div>
 
-        <!-- Sub-Tab Pilihan Master -->
         <div class="grid grid-cols-3 gap-2 mb-4">
           <button onclick="switchMasterSubTab('aturan')" id="subTabAturan" class="py-2 px-3 rounded-xl text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 transition">
             Aturan (<span id="countMasterAturan">0</span>)
@@ -506,7 +486,6 @@
           </button>
         </div>
 
-        <!-- Pencarian & Tombol Tambah Item Master -->
         <div class="flex flex-col sm:flex-row gap-2.5 mb-4">
           <input type="text" id="searchMasterInput" oninput="renderMasterTable()" placeholder="Cari nama, kelas, kategori, atau jenis pelanggaran..." class="flex-1 rounded-xl px-3.5 py-2 text-xs input-cyber" />
           <button onclick="openMasterFormModal(-1)" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg transition active:scale-95 shrink-0">
@@ -514,7 +493,6 @@
           </button>
         </div>
 
-        <!-- Tabel Data Master -->
         <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-[55vh]">
           <table class="w-full text-left border-collapse text-xs">
             <thead id="masterTableHead" class="sticky top-0 bg-slate-900 text-slate-300 border-b border-slate-800 z-10">
@@ -527,6 +505,31 @@
     </section>
 
   </main>
+
+  <!-- MODAL KONFIRMASI UNIVERSAL (PENGGANTI window.confirm AGAR ANTI-FREEZE DI ANDROID) -->
+  <div id="customConfirmModal" onclick="closeCustomConfirmModal()" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-4 border border-amber-500/40 shadow-2xl">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 id="customConfirmTitle" class="text-sm font-bold text-white">Konfirmasi</h3>
+          <p id="customConfirmMessage" class="text-xs text-slate-300 mt-1 leading-relaxed"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 pt-1">
+        <button type="button" onclick="closeCustomConfirmModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">
+          Batal
+        </button>
+        <button type="button" id="customConfirmOkBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white text-xs font-bold shadow-lg transition">
+          Ya, Lanjutkan
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL PREVIEW FOTO BUKTI -->
   <div id="photoModal" onclick="closePhotoModal()" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
@@ -627,7 +630,6 @@
           </button>
         </div>
 
-        <!-- Zona Hapus Transaksi (Konfirmasi Ganda) -->
         <div class="pt-3 mt-2 border-t border-slate-800/90">
           <button type="button" id="btnTriggerDeleteLap" onclick="requestDeleteLaporanStep1()" class="w-full py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-bold transition">
             Hapus Catatan Ini
@@ -650,7 +652,7 @@
     </div>
   </div>
 
-  <!-- MODAL TAMBAH / EDIT ITEM DATA MASTER (ATURAN / SISWA / GURU) -->
+  <!-- MODAL TAMBAH / EDIT ITEM DATA MASTER -->
   <div id="masterFormModal" onclick="closeMasterFormModal()" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div onclick="event.stopPropagation()" class="glass-card rounded-2xl max-w-md w-full p-5 space-y-4 border border-indigo-500/40">
       <div class="flex items-center justify-between pb-2 border-b border-slate-800">
@@ -716,7 +718,7 @@
   <!-- TOAST NOTIFICATION -->
   <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl text-xs font-semibold shadow-2xl border transition-all duration-300"></div>
 
-  <!-- BOTTOM NAVIGATION BAR (2 TAB PUBLIK / 3 TAB ADMIN) -->
+  <!-- BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 inset-x-0 z-40 glass-card border-t border-cyan-500/20 px-3 py-2">
     <div id="bottomNavGrid" class="max-w-lg mx-auto grid grid-cols-2 gap-1.5">
       <button onclick="switchTab('input')" id="navInput" class="flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition">
@@ -746,7 +748,6 @@
   <!-- LOGIKA JAVASCRIPT UTAMA                                               -->
   <!-- ===================================================================== -->
   <script>
-    // State Global (Autentikasi Admin diverifikasi 100% di sisi server Code.gs)
     let adminSessionToken = sessionStorage.getItem("capps_admin_token") || "";
     let isAdminLoggedIn = Boolean(adminSessionToken);
     let offlineQueue = [];
@@ -757,11 +758,10 @@
     let filteredLaporan = [];
     let compressedBase64 = "";
     let currentMasterSubTab = "aturan";
+    let pendingConfirmCallback = null;
 
-    // Instance Grafik Chart.js
     let charts = { kategori: null, harian: null, mingguan: null, bulanan: null };
 
-    // Inisialisasi saat halaman dimuat
     document.addEventListener("DOMContentLoaded", () => {
       const today = new Date().toISOString().split("T")[0];
       document.getElementById("inputTanggal").value = today;
@@ -777,7 +777,6 @@
         fetchAllData(false);
       }
 
-      // Tutup dropdown pencarian cepat jika klik di luar area
       document.addEventListener("click", (ev) => {
         const box = document.getElementById("quickSearchResults");
         const inp = document.getElementById("quickSearchSiswaInput");
@@ -786,7 +785,6 @@
         }
       });
 
-      // Otomatis kirim ulang antrean ketika perangkat kembali online
       window.addEventListener("online", () => {
         if (offlineQueue.length > 0) {
           showToast("Koneksi internet kembali aktif. Mencoba mengirim antrean...", "success");
@@ -796,13 +794,38 @@
     });
 
     // =========================================================================
-    // MANAJEMEN LOGIN & HAK AKSES ADMIN (VERIFIKASI SERVER-SIDE CODE.GS)
+    // MODAL KONFIRMASI HTML NON-BLOCKING (ANTI-FREEZE DI WEBVIEW ANDROID)
+    // =========================================================================
+    function openCustomConfirm(title, message, okLabel, onConfirm) {
+      document.getElementById("customConfirmTitle").textContent = title;
+      document.getElementById("customConfirmMessage").textContent = message;
+      const okBtn = document.getElementById("customConfirmOkBtn");
+      okBtn.textContent = okLabel || "Ya, Lanjutkan";
+      pendingConfirmCallback = onConfirm;
+      okBtn.onclick = () => {
+        const cb = pendingConfirmCallback;
+        closeCustomConfirmModal();
+        if (typeof cb === "function") cb();
+      };
+      document.getElementById("customConfirmModal").classList.remove("hidden");
+    }
+
+    function closeCustomConfirmModal() {
+      pendingConfirmCallback = null;
+      document.getElementById("customConfirmModal").classList.add("hidden");
+    }
+
+    // =========================================================================
+    // MANAJEMEN LOGIN & HAK AKSES ADMIN
     // =========================================================================
     function handleAdminAuthClick() {
       if (isAdminLoggedIn) {
-        if (confirm("Keluar dari mode Admin? Menu edit laporan dan data master akan dikunci kembali.")) {
-          forceAdminLogout("Berhasil logout dari mode Admin.");
-        }
+        openCustomConfirm(
+          "Keluar Mode Admin",
+          "Keluar dari mode Admin? Menu edit laporan dan data master akan dikunci kembali.",
+          "Ya, Keluar Admin",
+          () => forceAdminLogout("Berhasil logout dari mode Admin.", "success")
+        );
       } else {
         document.getElementById("adminUsernameInput").value = "";
         document.getElementById("adminPasswordInput").value = "";
@@ -811,13 +834,13 @@
       }
     }
 
-    function forceAdminLogout(msg = "Sesi Admin berakhir. Silakan login kembali.") {
+    function forceAdminLogout(msg = "Sesi Admin berakhir. Silakan login kembali.", toastType = "error") {
       isAdminLoggedIn = false;
       adminSessionToken = "";
       sessionStorage.removeItem("capps_admin_token");
       applyAdminRoleUI();
       switchTab("input");
-      if (msg) showToast(msg, "error");
+      if (msg) showToast(msg, toastType);
     }
 
     function closeAdminLoginModal() {
@@ -895,7 +918,6 @@
         iconLock.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>`;
         btnImportWrap.classList.remove("hidden");
 
-        // Sembunyikan menu Input Data, tampilkan Data Master
         navInput.classList.add("hidden");
         navInput.classList.remove("flex");
         navMaster.classList.remove("hidden");
@@ -907,7 +929,6 @@
         iconLock.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>`;
         btnImportWrap.classList.add("hidden");
 
-        // Tampilkan menu Input Data, sembunyikan Data Master
         navInput.classList.remove("hidden");
         navInput.classList.add("flex");
         navMaster.classList.add("hidden");
@@ -920,7 +941,6 @@
       }
     }
 
-    // Navigasi Tab Utama
     function switchTab(tab) {
       if (tab === "master" && !isAdminLoggedIn) {
         showToast("Silakan login Admin terlebih dahulu untuk mengakses Data Master.", "error");
@@ -964,7 +984,6 @@
       }
     }
 
-    // Simpan & Muat Cache Lokal
     function loadFromLocalCache() {
       let hasMasterData = false;
       try {
@@ -1021,7 +1040,7 @@
     }
 
     // =========================================================================
-    // IMPOR & BACKUP DATA MASTER (Master_Guru, Master_Siswa, Master_Aturan)
+    // IMPOR & BACKUP DATA MASTER
     // =========================================================================
     function handleImportMaster(event) {
       const file = event.target.files[0];
@@ -1108,7 +1127,7 @@
     }
 
     // =========================================================================
-    // HALAMAN KELOLA & EDIT DATA MASTER (ATURAN, SISWA, GURU)
+    // HALAMAN KELOLA & EDIT DATA MASTER
     // =========================================================================
     function switchMasterSubTab(sub) {
       currentMasterSubTab = sub;
@@ -1316,21 +1335,27 @@
     });
 
     function deleteMasterItem(index) {
-      if (!confirm("Hapus item ini dari data master lokal?")) return;
-      if (currentMasterSubTab === "aturan") {
-        masterAturan.splice(index, 1);
-        localStorage.setItem("capps_master_aturan", JSON.stringify(masterAturan));
-      } else if (currentMasterSubTab === "siswa") {
-        masterSiswa.splice(index, 1);
-        localStorage.setItem("capps_master_siswa", JSON.stringify(masterSiswa));
-      } else {
-        masterGuru.splice(index, 1);
-        localStorage.setItem("capps_master_guru", JSON.stringify(masterGuru));
-      }
-      populateDropdowns();
-      updateMasterStatusLabel();
-      renderMasterTable();
-      showToast("Item master dihapus.", "success");
+      openCustomConfirm(
+        "Hapus Item Master",
+        "Hapus item ini dari data master lokal?",
+        "Ya, Hapus",
+        () => {
+          if (currentMasterSubTab === "aturan") {
+            masterAturan.splice(index, 1);
+            localStorage.setItem("capps_master_aturan", JSON.stringify(masterAturan));
+          } else if (currentMasterSubTab === "siswa") {
+            masterSiswa.splice(index, 1);
+            localStorage.setItem("capps_master_siswa", JSON.stringify(masterSiswa));
+          } else {
+            masterGuru.splice(index, 1);
+            localStorage.setItem("capps_master_guru", JSON.stringify(masterGuru));
+          }
+          populateDropdowns();
+          updateMasterStatusLabel();
+          renderMasterTable();
+          showToast("Item master dihapus.", "success");
+        }
+      );
     }
 
     // =========================================================================
@@ -1426,7 +1451,6 @@
         }
 
         if (data.status === "success") {
-          // Sinkronkan master dari server (Google Sheets) jika tersedia di Spreadsheet
           if (Array.isArray(data.master?.guru) && data.master.guru.length > 0) {
             masterGuru = data.master.guru.map(g => ({
               Nama_Guru: String(g.Nama_Guru || "").trim(),
@@ -1469,7 +1493,6 @@
       }
     }
 
-    // Isi Dropdown Guru, Kelas, dan Daftar Siswa Awal di Filter
     function populateDropdowns() {
       const selGuru = document.getElementById("inputGuru");
       const savedGuru = localStorage.getItem("capps_last_guru") || "";
@@ -1769,7 +1792,7 @@
     }
 
     // =========================================================================
-    // MANAJEMEN ANTREAN OFFLINE (OFFLINE QUEUE) UNTUK AREA SINYAL LEMAH
+    // MANAJEMEN ANTREAN OFFLINE
     // =========================================================================
     function loadOfflineQueue() {
       try {
@@ -1812,11 +1835,16 @@
     }
 
     function clearOfflineQueueWithConfirm() {
-      if (confirm(`Hapus ${offlineQueue.length} catatan yang tertunda di antrean perangkat ini?`)) {
-        offlineQueue = [];
-        saveOfflineQueue();
-        showToast("Antrean offline dibersihkan.", "success");
-      }
+      openCustomConfirm(
+        "Hapus Antrean Offline",
+        `Hapus ${offlineQueue.length} catatan yang tertunda di antrean perangkat ini?`,
+        "Ya, Hapus Antrean",
+        () => {
+          offlineQueue = [];
+          saveOfflineQueue();
+          showToast("Antrean offline dibersihkan.", "success");
+        }
+      );
     }
 
     async function flushOfflineQueue(showManualNotif = true) {
@@ -1873,7 +1901,7 @@
     }
 
     // =========================================================================
-    // KIRIM FORM KE GOOGLE APPS SCRIPT (doPost) + FALLBACK ANTREAN OFFLINE
+    // KIRIM FORM KE GOOGLE APPS SCRIPT (doPost)
     // =========================================================================
     document.getElementById("formPelanggaran").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1892,7 +1920,6 @@
         fotoBase64: compressedBase64
       };
 
-      // Simpan pilihan guru terakhir
       if (payload.guru) {
         localStorage.setItem("capps_last_guru", payload.guru);
       }
@@ -1945,7 +1972,6 @@
           showToast(result.message || "Gagal menyimpan data ke Server.", "error");
         }
       } catch (err) {
-        // Simpan ke Antrean Offline agar data & foto tidak hilang saat sinyal lemah/terputus
         enqueueOfflinePayload(payload);
         resetInputFormToDefault();
         showToast("Sinyal lemah/offline: Catatan & foto disimpan ke Antrean Perangkat. Klik 'Kirim Ulang Antrean' saat sinyal stabil.", "error");
@@ -2115,7 +2141,7 @@
     }
 
     // =========================================================================
-    // FITUR EDIT CATATAN PELANGGARAN (LAPORAN) -> SINKRON KE SPREADSHEET
+    // FITUR EDIT CATATAN PELANGGARAN (LAPORAN)
     // =========================================================================
     function openEditLaporanModal(filteredIdx) {
       if (!isAdminLoggedIn) {
@@ -2130,7 +2156,6 @@
       document.getElementById("editLapIdLabel").textContent = `ID: ${row.ID_Transaksi || "-"}`;
       document.getElementById("editLapTanggal").value = row.TanggalNormalized || normalizeDateISO(row.Tanggal);
 
-      // Isi dropdown Guru
       const selGuru = document.getElementById("editLapGuru");
       selGuru.innerHTML = masterGuru.map(g => `<option value="${g.Nama_Guru}">${g.Nama_Guru}</option>`).join("");
       if (![...selGuru.options].some(o => o.value === row.Nama_Guru) && row.Nama_Guru) {
@@ -2138,7 +2163,6 @@
       }
       selGuru.value = row.Nama_Guru || "";
 
-      // Isi dropdown Kelas
       const kelasUnik = [...new Set(masterSiswa.map(s => String(s.Kelas).trim()).filter(Boolean))].sort();
       const selKelas = document.getElementById("editLapKelas");
       selKelas.innerHTML = kelasUnik.map(k => `<option value="${k}">${k}</option>`).join("");
@@ -2149,7 +2173,6 @@
 
       onEditLapKelasChange(row.Nama_Siswa);
 
-      // Kategori & Jenis
       const selKat = document.getElementById("editLapKategori");
       selKat.value = row.Kategori || "Kelakuan";
       onEditLapKategoriChange(row.Jenis_Pelanggaran, row.Poin);
@@ -2276,7 +2299,6 @@
       }
     });
 
-    // Konfirmasi Ganda Hapus Transaksi Pelanggaran
     function requestDeleteLaporanStep1() {
       document.getElementById("btnTriggerDeleteLap").classList.add("hidden");
       document.getElementById("boxConfirmDeleteLap").classList.remove("hidden");
@@ -2489,9 +2511,6 @@
       }
     }
 
-    // =========================================================================
-    // CETAK REKAP INDIVIDU SISWA (PDF) + KOLOM TANDA TANGAN BK / KEPALA SEKOLAH
-    // =========================================================================
     function exportRekapSiswaPDF() {
       const siswaDipilih = document.getElementById("filterSiswa").value;
       if (!siswaDipilih) {
@@ -2510,7 +2529,6 @@
       const nisSiswa = masterInfo?.NIS || "-";
       const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
 
-      // Kop Judul Dokumen
       doc.setFontSize(13);
       doc.setFont("helvetica", "bold");
       doc.text("REKAPITULASI CATATAN PELANGGARAN TATA TERTIB SISWA", 105, 16, { align: "center" });
@@ -2522,7 +2540,6 @@
       doc.setLineWidth(0.5);
       doc.line(14, 25, 196, 25);
 
-      // Identitas Siswa
       doc.setFontSize(9.5);
       doc.setFont("helvetica", "bold");
       doc.text("Nama Siswa", 14, 32);
