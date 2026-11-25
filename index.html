@@ -694,6 +694,9 @@
       document.getElementById("inputTanggal").value = today;
 
       applyAdminRoleUI();
+      if (isAdminLoggedIn) {
+        switchTab("laporan");
+      }
 
       const hasMaster = loadFromLocalCache();
       if (!hasMaster) {
@@ -735,7 +738,8 @@
         sessionStorage.setItem("capps_is_admin", "true");
         closeAdminLoginModal();
         applyAdminRoleUI();
-        showToast("Login Admin berhasil! Akses penuh diaktifkan.", "success");
+        switchTab("laporan");
+        showToast("Login Admin berhasil! Mode pengelolaan aktif.", "success");
       } else {
         showToast("Username atau password Admin salah!", "error");
       }
@@ -747,15 +751,21 @@
       const iconLock = document.getElementById("iconAdminLock");
       const btnImportWrap = document.getElementById("btnImportMasterWrap");
       const navGrid = document.getElementById("bottomNavGrid");
+      const navInput = document.getElementById("navInput");
       const navMaster = document.getElementById("navMaster");
       const navLaporanLabel = document.getElementById("navLaporanLabel");
+
+      navGrid.className = "max-w-lg mx-auto grid grid-cols-2 gap-1.5";
 
       if (isAdminLoggedIn) {
         btnAuth.className = "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-[11px] sm:text-xs font-bold text-emerald-300 transition active:scale-95";
         labelAuth.textContent = "Admin ✓";
         iconLock.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>`;
         btnImportWrap.classList.remove("hidden");
-        navGrid.className = "max-w-lg mx-auto grid grid-cols-3 gap-1.5";
+
+        // Sembunyikan menu Input Data, tampilkan Data Master
+        navInput.classList.add("hidden");
+        navInput.classList.remove("flex");
         navMaster.classList.remove("hidden");
         navMaster.classList.add("flex");
         navLaporanLabel.textContent = "Laporan & Edit";
@@ -764,7 +774,10 @@
         labelAuth.textContent = "Admin";
         iconLock.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>`;
         btnImportWrap.classList.add("hidden");
-        navGrid.className = "max-w-lg mx-auto grid grid-cols-2 gap-1.5";
+
+        // Tampilkan menu Input Data, sembunyikan Data Master
+        navInput.classList.remove("hidden");
+        navInput.classList.add("flex");
         navMaster.classList.add("hidden");
         navMaster.classList.remove("flex");
         navLaporanLabel.textContent = "Laporan";
@@ -782,6 +795,9 @@
         handleAdminAuthClick();
         return;
       }
+      if (tab === "input" && isAdminLoggedIn) {
+        tab = "laporan";
+      }
       const pages = {
         input: document.getElementById("pageInput"),
         laporan: document.getElementById("pageLaporan"),
@@ -797,12 +813,13 @@
       const inactiveClass = "flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition";
 
       Object.keys(pages).forEach(key => {
-        if (key === tab) {
+        const isHiddenRole = (key === "master" && !isAdminLoggedIn) || (key === "input" && isAdminLoggedIn);
+        if (key === tab && !isHiddenRole) {
           pages[key].classList.remove("hidden");
           navs[key].className = activeClass;
         } else {
           pages[key].classList.add("hidden");
-          navs[key].className = inactiveClass;
+          navs[key].className = isHiddenRole ? "hidden" : inactiveClass;
         }
       });
 
