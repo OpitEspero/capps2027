@@ -2466,7 +2466,7 @@
       const ua = navigator.userAgent || "";
       const isAndroidOrWebView = /Android|wv|WebView/i.test(ua);
 
-      // 1. Jika dibuka di PC / Desktop (bukan Android/APK), unduh langsung via Blob URL
+      // 1. Untuk PC / Desktop: unduh instan via Blob URL
       if (!isAndroidOrWebView) {
         try {
           const byteChars = atob(base64Data);
@@ -2489,41 +2489,22 @@
           showToast(`File ${fileName} berhasil diunduh!`, "success");
           return;
         } catch (localErr) {
-          console.warn("Beralih ke unduhan HTTPS Drive:", localErr);
+          console.warn("Beralih ke Data URI:", localErr);
         }
       }
 
-      // 2. Untuk APK Android / WebView: kirim ke Apps Script (jalur Drive + cadangan dataUri)
-      showToast("Menyiapkan file unduhan untuk Android...", "success");
+      // 2. Untuk APK Android / WebView: unduh langsung via Data URI (tanpa membuka drive.google.com & tanpa layar login)
       try {
-        const res = await fetch(SCRIPT_URL, {
-          method: "POST",
-          redirect: "follow",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
-          body: JSON.stringify({
-            action: "exportFile",
-            fileName: fileName,
-            mimeType: mimeType,
-            base64Data: base64Data
-          })
-        });
-        const result = await res.json();
-        if (result.status === "success" && result.downloadUrl) {
-          window.location.href = result.downloadUrl;
-        } else if (result.status === "success" && result.dataUri) {
-          const a = document.createElement("a");
-          a.href = result.dataUri;
-          a.download = result.fileName || fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        } else {
-          showToast(result.message || "Gagal menyiapkan file unduhan.", "error");
-        }
+        const dataUri = `data:${mimeType};base64,${base64Data}`;
+        const a = document.createElement("a");
+        a.href = dataUri;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast(`Mengunduh ${fileName}...`, "success");
       } catch (err) {
-        showToast("Koneksi gagal saat mengekspor file.", "error");
+        showToast("Gagal mengunduh file di perangkat.", "error");
       }
     }
 
