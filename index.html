@@ -2463,35 +2463,31 @@
     // EXPORT EXCEL (.XLSX) & PDF VIA APPS SCRIPT (UNDUHAN HTTPS WEB APP)
     // =========================================================================
     async function unduhViaAppsScript(fileName, mimeType, base64Data) {
-      const ua = navigator.userAgent || "";
-      const isAndroidOrWebView = /Android|wv|WebView/i.test(ua);
-
-      // 1. Untuk PC / Desktop: unduh instan via Blob URL
-      if (!isAndroidOrWebView) {
-        try {
-          const byteChars = atob(base64Data);
-          const byteNumbers = new Array(byteChars.length);
-          for (let i = 0; i < byteChars.length; i++) {
-            byteNumbers[i] = byteChars.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: mimeType });
-          const blobUrl = URL.createObjectURL(blob);
-
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-
-          showToast(`File ${fileName} berhasil diunduh!`, "success");
-          return;
-        } catch (localErr) {
-          console.warn("Beralih ke unduhan HTTPS Web App:", localErr);
+      showToast("Menyiapkan file unduhan...", "success");
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          redirect: "follow",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action: "exportFile",
+            fileName: fileName,
+            mimeType: mimeType,
+            base64Data: base64Data
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success" && result.downloadUrl) {
+          window.location.href = result.downloadUrl;
+        } else {
+          showToast(result.message || "Gagal membuat file unduhan.", "error");
         }
+      } catch (err) {
+        showToast("Koneksi gagal saat mengekspor file.", "error");
       }
+    }
 
       // 2. Untuk APK Android / WebView: gunakan URL HTTPS Web App publik (lolos DownloadManager & bebas login Google)
       showToast("Menyiapkan file unduhan...", "success");
