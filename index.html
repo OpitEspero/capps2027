@@ -108,9 +108,9 @@
         </div>
       </div>
 
-      <!-- Grup Tombol Header: Impor Master & Sinkron Laporan -->
+      <!-- Grup Tombol Header: Impor Master (Khusus Admin), Sinkron, & Login Admin -->
       <div class="flex items-center gap-1.5 sm:gap-2">
-        <label title="Impor Master_Guru, Master_Siswa, & Master_Aturan dari Excel (.xlsx)" class="cursor-pointer flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-500/40 text-[11px] sm:text-xs font-medium text-indigo-300 transition active:scale-95">
+        <label id="btnImportMasterWrap" title="Impor Master_Guru, Master_Siswa, & Master_Aturan dari Excel (.xlsx)" class="hidden cursor-pointer flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-500/40 text-[11px] sm:text-xs font-medium text-indigo-300 transition active:scale-95">
           <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
           </svg>
@@ -123,6 +123,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
           </svg>
           <span>Sinkron</span>
+        </button>
+
+        <button onclick="handleAdminAuthClick()" id="btnAdminAuth" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-[11px] sm:text-xs font-bold text-amber-300 transition active:scale-95">
+          <svg id="iconAdminLock" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          <span id="labelAdminAuth">Admin</span>
         </button>
       </div>
     </div>
@@ -592,12 +599,51 @@
     </div>
   </div>
 
+  <!-- MODAL LOGIN ADMIN -->
+  <div id="adminLoginModal" onclick="closeAdminLoginModal()" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-4 border border-amber-500/40 shadow-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Login Administrator</h3>
+            <p class="text-[11px] text-slate-400">Akses Edit Laporan & Data Master</p>
+          </div>
+        </div>
+        <button onclick="closeAdminLoginModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1">✕</button>
+      </div>
+
+      <form id="formAdminLogin" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Username</label>
+          <input type="text" id="adminUsernameInput" required autocomplete="off" placeholder="Masukkan username admin" class="w-full rounded-xl px-3.5 py-2.5 text-xs input-cyber" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Password</label>
+          <input type="password" id="adminPasswordInput" required placeholder="Masukkan password admin" class="w-full rounded-xl px-3.5 py-2.5 text-xs input-cyber" />
+        </div>
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="closeAdminLoginModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">
+            Batal
+          </button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white text-xs font-bold shadow-lg transition">
+            Masuk Admin
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- TOAST NOTIFICATION -->
   <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl text-xs font-semibold shadow-2xl border transition-all duration-300"></div>
 
-  <!-- BOTTOM NAVIGATION BAR (3 TAB: INPUT, LAPORAN, DATA MASTER) -->
+  <!-- BOTTOM NAVIGATION BAR (2 TAB PUBLIK / 3 TAB ADMIN) -->
   <nav class="fixed bottom-0 inset-x-0 z-40 glass-card border-t border-cyan-500/20 px-3 py-2">
-    <div class="max-w-lg mx-auto grid grid-cols-3 gap-1.5">
+    <div id="bottomNavGrid" class="max-w-lg mx-auto grid grid-cols-2 gap-1.5">
       <button onclick="switchTab('input')" id="navInput" class="flex flex-col items-center justify-center py-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 transition">
         <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -609,10 +655,10 @@
         <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
-        <span class="text-[11px] font-bold">Laporan & Edit</span>
+        <span id="navLaporanLabel" class="text-[11px] font-bold">Laporan</span>
       </button>
 
-      <button onclick="switchTab('master')" id="navMaster" class="flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition">
+      <button onclick="switchTab('master')" id="navMaster" class="hidden flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition">
         <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
         </svg>
@@ -625,7 +671,12 @@
   <!-- LOGIKA JAVASCRIPT UTAMA                                               -->
   <!-- ===================================================================== -->
   <script>
+    // Kredensial Admin (Tanpa Hash)
+    const ADMIN_USER = "admin";
+    const ADMIN_PASS = "admin123";
+
     // State Global
+    let isAdminLoggedIn = sessionStorage.getItem("capps_is_admin") === "true";
     let masterGuru = [];
     let masterSiswa = [];
     let masterAturan = [];
@@ -642,14 +693,95 @@
       const today = new Date().toISOString().split("T")[0];
       document.getElementById("inputTanggal").value = today;
 
+      applyAdminRoleUI();
+
       const hasMaster = loadFromLocalCache();
       if (!hasMaster) {
         fetchAllData(false);
       }
     });
 
-    // Navigasi 3 Tab Utama
+    // =========================================================================
+    // MANAJEMEN LOGIN & HAK AKSES ADMIN
+    // =========================================================================
+    function handleAdminAuthClick() {
+      if (isAdminLoggedIn) {
+        if (confirm("Keluar dari mode Admin? Menu edit laporan dan data master akan dikunci kembali.")) {
+          isAdminLoggedIn = false;
+          sessionStorage.removeItem("capps_is_admin");
+          applyAdminRoleUI();
+          switchTab("input");
+          showToast("Berhasil logout dari mode Admin.", "success");
+        }
+      } else {
+        document.getElementById("adminUsernameInput").value = "";
+        document.getElementById("adminPasswordInput").value = "";
+        document.getElementById("adminLoginModal").classList.remove("hidden");
+        setTimeout(() => document.getElementById("adminUsernameInput").focus(), 100);
+      }
+    }
+
+    function closeAdminLoginModal() {
+      document.getElementById("adminLoginModal").classList.add("hidden");
+    }
+
+    document.getElementById("formAdminLogin").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const userVal = document.getElementById("adminUsernameInput").value.trim();
+      const passVal = document.getElementById("adminPasswordInput").value;
+
+      if (userVal === ADMIN_USER && passVal === ADMIN_PASS) {
+        isAdminLoggedIn = true;
+        sessionStorage.setItem("capps_is_admin", "true");
+        closeAdminLoginModal();
+        applyAdminRoleUI();
+        showToast("Login Admin berhasil! Akses penuh diaktifkan.", "success");
+      } else {
+        showToast("Username atau password Admin salah!", "error");
+      }
+    });
+
+    function applyAdminRoleUI() {
+      const btnAuth = document.getElementById("btnAdminAuth");
+      const labelAuth = document.getElementById("labelAdminAuth");
+      const iconLock = document.getElementById("iconAdminLock");
+      const btnImportWrap = document.getElementById("btnImportMasterWrap");
+      const navGrid = document.getElementById("bottomNavGrid");
+      const navMaster = document.getElementById("navMaster");
+      const navLaporanLabel = document.getElementById("navLaporanLabel");
+
+      if (isAdminLoggedIn) {
+        btnAuth.className = "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-[11px] sm:text-xs font-bold text-emerald-300 transition active:scale-95";
+        labelAuth.textContent = "Admin ✓";
+        iconLock.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>`;
+        btnImportWrap.classList.remove("hidden");
+        navGrid.className = "max-w-lg mx-auto grid grid-cols-3 gap-1.5";
+        navMaster.classList.remove("hidden");
+        navMaster.classList.add("flex");
+        navLaporanLabel.textContent = "Laporan & Edit";
+      } else {
+        btnAuth.className = "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-[11px] sm:text-xs font-bold text-amber-300 transition active:scale-95";
+        labelAuth.textContent = "Admin";
+        iconLock.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>`;
+        btnImportWrap.classList.add("hidden");
+        navGrid.className = "max-w-lg mx-auto grid grid-cols-2 gap-1.5";
+        navMaster.classList.add("hidden");
+        navMaster.classList.remove("flex");
+        navLaporanLabel.textContent = "Laporan";
+      }
+
+      if (allLaporan.length > 0) {
+        updateSummaryAndTable();
+      }
+    }
+
+    // Navigasi Tab Utama
     function switchTab(tab) {
+      if (tab === "master" && !isAdminLoggedIn) {
+        showToast("Silakan login Admin terlebih dahulu untuk mengakses Data Master.", "error");
+        handleAdminAuthClick();
+        return;
+      }
       const pages = {
         input: document.getElementById("pageInput"),
         laporan: document.getElementById("pageLaporan"),
@@ -1511,10 +1643,12 @@
             </td>
             <td class="p-3 text-center font-mono font-bold text-rose-400">+${row.Poin}</td>
             <td class="p-3 text-center whitespace-nowrap space-x-1">
-              <button onclick="openEditLaporanModal(${idx})" class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 text-[11px] font-semibold">Edit</button>
+              ${isAdminLoggedIn
+                ? `<button onclick="openEditLaporanModal(${idx})" class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 text-[11px] font-semibold">Edit</button>`
+                : ``}
               ${hasPhoto
                 ? `<button onclick="openPhotoModal('${row.Link_Foto_Drive}', '${row.Nama_File_Foto}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 text-[11px] font-semibold">Foto</button>`
-                : ``}
+                : (!isAdminLoggedIn ? `<span class="text-slate-600">-</span>` : ``)}
             </td>
           </tr>
         `;
@@ -1525,6 +1659,10 @@
     // FITUR EDIT CATATAN PELANGGARAN (LAPORAN) -> SINKRON KE SPREADSHEET
     // =========================================================================
     function openEditLaporanModal(filteredIdx) {
+      if (!isAdminLoggedIn) {
+        showToast("Hanya Admin yang dapat mengedit data laporan.", "error");
+        return;
+      }
       const row = filteredLaporan[filteredIdx];
       if (!row) return;
 
@@ -1617,6 +1755,8 @@
 
       const updatedPayload = {
         action: "updateLaporan",
+        adminUser: ADMIN_USER,
+        adminPass: ADMIN_PASS,
         id: idTransaksi,
         tanggal: document.getElementById("editLapTanggal").value,
         guru: document.getElementById("editLapGuru").value,
