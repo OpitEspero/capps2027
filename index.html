@@ -895,7 +895,6 @@
         iconLock.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>`;
         btnImportWrap.classList.remove("hidden");
 
-        // Sembunyikan menu Input Data, tampilkan Data Master
         navInput.classList.add("hidden");
         navInput.classList.remove("flex");
         navMaster.classList.remove("hidden");
@@ -907,7 +906,6 @@
         iconLock.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>`;
         btnImportWrap.classList.add("hidden");
 
-        // Tampilkan menu Input Data, sembunyikan Data Master
         navInput.classList.remove("hidden");
         navInput.classList.add("flex");
         navMaster.classList.add("hidden");
@@ -1426,7 +1424,6 @@
         }
 
         if (data.status === "success") {
-          // Sinkronkan master dari server (Google Sheets) jika tersedia di Spreadsheet
           if (Array.isArray(data.master?.guru) && data.master.guru.length > 0) {
             masterGuru = data.master.guru.map(g => ({
               Nama_Guru: String(g.Nama_Guru || "").trim(),
@@ -1560,8 +1557,7 @@
 
       const kelasFilter = document.getElementById("inputKelas").value;
       const matches = masterSiswa.filter(s => {
-        const matchText = String(s.Nama_Siswa || "").toLowerCase().includes(q) || String(s.NIS || "").toLowerCase().includes(q);
-        return matchText;
+        return String(s.Nama_Siswa || "").toLowerCase().includes(q) || String(s.NIS || "").toLowerCase().includes(q);
       }).slice(0, 15);
 
       if (matches.length === 0) {
@@ -1570,9 +1566,9 @@
         return;
       }
 
-      box.innerHTML = matches.map((s, idx) => {
-        const safeNama = String(s.Nama_Siswa).replace(/'/g, "\'");
-        const safeKelas = String(s.Kelas).replace(/'/g, "\'");
+      box.innerHTML = matches.map((s) => {
+        const safeNama = String(s.Nama_Siswa).replace(/'/g, "\\'");
+        const safeKelas = String(s.Kelas).replace(/'/g, "\\'");
         const highlightCls = kelasFilter && s.Kelas === kelasFilter ? "text-cyan-300" : "text-white";
         return `
           <button type="button" onclick="selectQuickSearchSiswa('${safeKelas}', '${safeNama}')" class="w-full text-left px-3 py-2 hover:bg-slate-800 transition flex items-center justify-between gap-2">
@@ -1892,7 +1888,6 @@
         fotoBase64: compressedBase64
       };
 
-      // Simpan pilihan guru terakhir
       if (payload.guru) {
         localStorage.setItem("capps_last_guru", payload.guru);
       }
@@ -1945,7 +1940,6 @@
           showToast(result.message || "Gagal menyimpan data ke Server.", "error");
         }
       } catch (err) {
-        // Simpan ke Antrean Offline agar data & foto tidak hilang saat sinyal lemah/terputus
         enqueueOfflinePayload(payload);
         resetInputFormToDefault();
         showToast("Sinyal lemah/offline: Catatan & foto disimpan ke Antrean Perangkat. Klik 'Kirim Ulang Antrean' saat sinyal stabil.", "error");
@@ -1989,7 +1983,7 @@
         jun: "06", jul: "07", aug: "08", agu: "08", sep: "09",
         oct: "10", okt: "10", nov: "11", dec: "12", des: "12"
       };
-      const textMonthMatch = str.match(/([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})/);
+      const textMonthMatch = str.match(/ ([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4}) /);
       if (textMonthMatch) {
         const mKey = textMonthMatch[1].substring(0, 3).toLowerCase();
         if (monthMap[mKey]) {
@@ -2004,7 +1998,7 @@
           return `${fallbackYear}-${monthMap[mKey]}-${shortDayMonthMatch[2].padStart(2, "0")}`;
         }
       }
-      const dmyTextMatch = str.match(/(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})/);
+      const dmyTextMatch = str.match(/ (\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4}) /);
       if (dmyTextMatch) {
         const mKey = dmyTextMatch[2].substring(0, 3).toLowerCase();
         if (monthMap[mKey]) {
@@ -2130,7 +2124,6 @@
       document.getElementById("editLapIdLabel").textContent = `ID: ${row.ID_Transaksi || "-"}`;
       document.getElementById("editLapTanggal").value = row.TanggalNormalized || normalizeDateISO(row.Tanggal);
 
-      // Isi dropdown Guru
       const selGuru = document.getElementById("editLapGuru");
       selGuru.innerHTML = masterGuru.map(g => `<option value="${g.Nama_Guru}">${g.Nama_Guru}</option>`).join("");
       if (![...selGuru.options].some(o => o.value === row.Nama_Guru) && row.Nama_Guru) {
@@ -2138,7 +2131,6 @@
       }
       selGuru.value = row.Nama_Guru || "";
 
-      // Isi dropdown Kelas
       const kelasUnik = [...new Set(masterSiswa.map(s => String(s.Kelas).trim()).filter(Boolean))].sort();
       const selKelas = document.getElementById("editLapKelas");
       selKelas.innerHTML = kelasUnik.map(k => `<option value="${k}">${k}</option>`).join("");
@@ -2149,7 +2141,6 @@
 
       onEditLapKelasChange(row.Nama_Siswa);
 
-      // Kategori & Jenis
       const selKat = document.getElementById("editLapKategori");
       selKat.value = row.Kategori || "Kelakuan";
       onEditLapKategoriChange(row.Jenis_Pelanggaran, row.Poin);
@@ -2246,7 +2237,6 @@
         }
 
         if (result.status === "success") {
-          // Perbarui juga state lokal & cache langsung
           const idxGlobal = allLaporan.findIndex(item => String(item.ID_Transaksi) === String(idTransaksi));
           if (idxGlobal >= 0) {
             allLaporan[idxGlobal] = {
@@ -2277,7 +2267,6 @@
       }
     });
 
-    // Konfirmasi Ganda Hapus Transaksi Pelanggaran
     function requestDeleteLaporanStep1() {
       document.getElementById("btnTriggerDeleteLap").classList.add("hidden");
       document.getElementById("boxConfirmDeleteLap").classList.remove("hidden");
@@ -2398,406 +2387,4 @@
         "#10b981", "Kasus Bulanan");
     }
 
-    function drawChart(key, canvasId, type, labels, data, colors, labelText) {
-      if (charts[key]) charts[key].destroy();
-      const ctx = document.getElementById(canvasId).getContext("2d");
-      charts[key] = new Chart(ctx, {
-        type: type,
-        data: {
-          labels: labels.length ? labels : ["Belum ada data"],
-          datasets: [{
-            label: labelText,
-            data: data.length ? data : [0],
-            backgroundColor: Array.isArray(colors) ? colors : colors + "33",
-            borderColor: Array.isArray(colors) ? "#0f172a" : colors,
-            borderWidth: 2,
-            borderRadius: type === "bar" ? 6 : 0,
-            tension: 0.35,
-            fill: type === "line"
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: type === "doughnut",
-              position: "bottom",
-              labels: { boxWidth: 12, font: { size: 11 } }
-            }
-          },
-          scales: type === "doughnut" ? {} : {
-            x: { grid: { color: "rgba(148, 163, 184, 0.08)" }, ticks: { font: { size: 10 } } },
-            y: { beginAtZero: true, grid: { color: "rgba(148, 163, 184, 0.08)" }, ticks: { precision: 0, font: { size: 10 } } }
-          }
-        }
-      });
-    }
-
-    function normalizeYearMonth(rawDate) {
-      if (!rawDate) return "";
-      const str = String(rawDate).trim();
-      const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})/);
-      if (isoMatch) {
-        return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}`;
-      }
-      const parsed = new Date(str);
-      if (!isNaN(parsed.getTime())) {
-        const y = parsed.getFullYear();
-        const m = String(parsed.getMonth() + 1).padStart(2, "0");
-        return `${y}-${m}`;
-      }
-      return "";
-    }
-
-    function getWeekLabel(date) {
-      const start = new Date(date.getFullYear(), 0, 1);
-      const diff = (date - start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);
-      const oneDay = 1000 * 60 * 60 * 24;
-      const day = Math.floor(diff / oneDay);
-      const week = Math.ceil((day + 1) / 7);
-      return `Mgg ${String(week).padStart(2, "0")} (${date.getFullYear()})`;
-    }
-
-    // =========================================================================
-    // EXPORT EXCEL (.XLSX) & PDF VIA APPS SCRIPT (UNDUHAN HTTPS ANDROID)
-    // =========================================================================
-   async function unduhViaAppsScript(fileName, mimeType, base64Data) {
-      const ua = navigator.userAgent || "";
-      const isAndroidOrWebView = /Android|wv|WebView/i.test(ua);
-
-      // 1. Untuk PC / Desktop: unduh instan via Blob URL
-      if (!isAndroidOrWebView) {
-        try {
-          const byteChars = atob(base64Data);
-          const byteNumbers = new Array(byteChars.length);
-          for (let i = 0; i < byteChars.length; i++) {
-            byteNumbers[i] = byteChars.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: mimeType });
-          const blobUrl = URL.createObjectURL(blob);
-
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-
-          showToast(`File ${fileName} berhasil diunduh!`, "success");
-          return;
-        } catch (localErr) {
-          console.warn("Beralih ke Data URI:", localErr);
-        }
-      }
-
-      // 2. Untuk APK Android / WebView: unduh langsung via Data URI (tanpa membuka drive.google.com & tanpa layar login)
-      try {
-        const dataUri = `data:${mimeType};base64,${base64Data}`;
-        const a = document.createElement("a");
-        a.href = dataUri;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showToast(`Mengunduh ${fileName}...`, "success");
-      } catch (err) {
-        showToast("Gagal mengunduh file di perangkat.", "error");
-      }
-    }
-
-    // =========================================================================
-    // CETAK REKAP INDIVIDU SISWA (PDF) + KOLOM TANDA TANGAN BK / KEPALA SEKOLAH
-    // =========================================================================
-    function exportRekapSiswaPDF() {
-      const siswaDipilih = document.getElementById("filterSiswa").value;
-      if (!siswaDipilih) {
-        showToast("Pilih satu nama siswa pada filter terlebih dahulu.", "error");
-        return;
-      }
-      if (filteredLaporan.length === 0) {
-        showToast("Tidak ada riwayat pelanggaran untuk siswa yang dipilih.", "error");
-        return;
-      }
-
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF("p", "mm", "a4");
-      const kelasFilter = document.getElementById("filterKelas").value || filteredLaporan[0]?.Kelas || "-";
-      const masterInfo = masterSiswa.find(s => String(s.Nama_Siswa).trim() === siswaDipilih && (!kelasFilter || String(s.Kelas).trim() === kelasFilter));
-      const nisSiswa = masterInfo?.NIS || "-";
-      const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
-
-      // Kop Judul Dokumen
-      doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
-      doc.text("REKAPITULASI CATATAN PELANGGARAN TATA TERTIB SISWA", 105, 16, { align: "center" });
-
-      doc.setFontSize(9.5);
-      doc.setFont("helvetica", "normal");
-      doc.text("Sistem Catatan Poin Pelanggaran Siswa (CaPPS Digital)", 105, 21.5, { align: "center" });
-
-      doc.setLineWidth(0.5);
-      doc.line(14, 25, 196, 25);
-
-      // Identitas Siswa
-      doc.setFontSize(9.5);
-      doc.setFont("helvetica", "bold");
-      doc.text("Nama Siswa", 14, 32);
-      doc.setFont("helvetica", "normal");
-      doc.text(`: ${siswaDipilih}`, 48, 32);
-
-      doc.setFont("helvetica", "bold");
-      doc.text("NIS / NISN", 14, 37.5);
-      doc.setFont("helvetica", "normal");
-      doc.text(`: ${nisSiswa}`, 48, 37.5);
-
-      doc.setFont("helvetica", "bold");
-      doc.text("Kelas", 125, 32);
-      doc.setFont("helvetica", "normal");
-      doc.text(`: ${kelasFilter}`, 152, 32);
-
-      doc.setFont("helvetica", "bold");
-      doc.text("Akumulasi Poin", 125, 37.5);
-      doc.setFont("helvetica", "bold");
-      doc.text(`: ${totalPoin} Poin (${filteredLaporan.length} Kasus)`, 152, 37.5);
-
-      const tableBody = filteredLaporan.map((r, i) => [
-        i + 1,
-        r.TanggalNormalized || r.Tanggal,
-        r.Kategori,
-        r.Jenis_Pelanggaran,
-        r.Nama_Guru,
-        `+${r.Poin}`
-      ]);
-
-      doc.autoTable({
-        startY: 43,
-        head: [["No", "Tanggal", "Kategori", "Uraian Pelanggaran", "Guru Pencatat", "Poin"]],
-        body: tableBody,
-        foot: [["", "", "", "", "TOTAL AKUMULASI POIN", `${totalPoin} Poin`]],
-        theme: "grid",
-        styles: { fontSize: 8.5, cellPadding: 2.3 },
-        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
-        footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: "bold" },
-        columnStyles: {
-          0: { halign: "center", cellWidth: 10 },
-          1: { cellWidth: 24 },
-          5: { halign: "center", cellWidth: 18 }
-        }
-      });
-
-      const finalY = (doc.lastAutoTable?.finalY || 120) + 12;
-      const tglCetak = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Dicetak pada: ${tglCetak}`, 140, finalY);
-
-      doc.text("Mengetahui,", 25, finalY + 7);
-      doc.text("Kepala Sekolah / Waka Kesiswaan", 25, finalY + 12);
-      doc.text("( .............................................. )", 25, finalY + 32);
-
-      doc.text("Guru Bimbingan Konseling (BK)", 140, finalY + 12);
-      doc.text("( .............................................. )", 140, finalY + 32);
-
-      const safeFileSiswa = siswaDipilih.replace(/[^a-zA-Z0-9]/g, "_");
-      const fileName = `Rekap_Siswa_${safeFileSiswa}_${new Date().toISOString().slice(0, 10)}.pdf`;
-      const pdfBase64 = doc.output("datauristring").split(",")[1];
-      unduhViaAppsScript(fileName, "application/pdf", pdfBase64);
-    }
-
-    function exportToExcel() {
-      if (filteredLaporan.length === 0) {
-        showToast("Tidak ada data untuk diekspor.", "error");
-        return;
-      }
-
-      const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
-      const rows = filteredLaporan.map((r, i) => ({
-        "No": i + 1,
-        "Tanggal": r.TanggalNormalized || r.Tanggal,
-        "Nama Siswa": r.Nama_Siswa,
-        "Kelas": r.Kelas,
-        "Kategori": r.Kategori,
-        "Jenis Pelanggaran": r.Jenis_Pelanggaran,
-        "Poin": Number(r.Poin) || 0,
-        "Guru Pencatat": r.Nama_Guru,
-        "File Bukti": r.Nama_File_Foto
-      }));
-
-      rows.push({
-        "No": "",
-        "Tanggal": "",
-        "Nama Siswa": "",
-        "Kelas": "",
-        "Kategori": "",
-        "Jenis Pelanggaran": "TOTAL AKUMULASI POIN",
-        "Poin": totalPoin,
-        "Guru Pencatat": "",
-        "File Bukti": ""
-      });
-
-      const worksheet = XLSX.utils.json_to_sheet(rows);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan_CaPPS");
-
-      const fileName = `Laporan_CaPPS_${new Date().toISOString().slice(0,10)}.xlsx`;
-      const base64Str = XLSX.write(workbook, { bookType: "xlsx", type: "base64" });
-      const mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-      unduhViaAppsScript(fileName, mimeType, base64Str);
-    }
-
-    function exportToPDF() {
-      if (filteredLaporan.length === 0) {
-        showToast("Tidak ada data untuk diekspor.", "error");
-        return;
-      }
-
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF("p", "mm", "a4");
-      const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
-
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("LAPORAN CATATAN PELANGGARAN SISWA (CaPPS)", 14, 16);
-
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      const kelasFilter = document.getElementById("filterKelas").value || "Semua Kelas";
-      const siswaFilter = document.getElementById("filterSiswa").value || "Semua Siswa";
-      doc.text(`Filter Kelas: ${kelasFilter} | Filter Siswa: ${siswaFilter} | Total Kasus: ${filteredLaporan.length}`, 14, 22);
-
-      const tableBody = filteredLaporan.map((r, i) => [
-        i + 1,
-        r.TanggalNormalized || r.Tanggal,
-        r.Nama_Siswa,
-        r.Kelas,
-        r.Kategori,
-        r.Jenis_Pelanggaran,
-        r.Poin
-      ]);
-
-      doc.autoTable({
-        startY: 27,
-        head: [["No", "Tanggal", "Nama Siswa", "Kelas", "Kategori", "Jenis Pelanggaran", "Poin"]],
-        body: tableBody,
-        foot: [["", "", "", "", "", "TOTAL POIN HASIL FILTER", totalPoin]],
-        theme: "grid",
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
-        footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: "bold" }
-      });
-
-      const fileName = `Laporan_CaPPS_${new Date().toISOString().slice(0,10)}.pdf`;
-      const pdfBase64 = doc.output("datauristring").split(",")[1];
-      const mimeType = "application/pdf";
-
-      unduhViaAppsScript(fileName, mimeType, pdfBase64);
-    }
-
-    // =========================================================================
-    // MODAL FOTO, MODAL SUKSES & NOTIFIKASI TOAST
-    // =========================================================================
-    async function openPhotoModal(url, filename) {
-      const modal = document.getElementById("photoModal");
-      const titleEl = document.getElementById("modalPhotoTitle");
-      const imgEl = document.getElementById("modalPhotoImg");
-      const linkEl = document.getElementById("modalPhotoLink");
-
-      titleEl.textContent = (filename || "Bukti Foto") + " (Memuat...)";
-      imgEl.src = "";
-      linkEl.href = url;
-      modal.classList.remove("hidden");
-
-      const matchId = String(url).match(/[-\w]{25,}/);
-      if (!matchId) {
-        imgEl.src = url;
-        titleEl.textContent = filename || "Bukti Foto";
-        return;
-      }
-
-      try {
-        const res = await fetch(`${SCRIPT_URL}?action=getPhoto&id=${matchId[0]}`, {
-          method: "GET",
-          redirect: "follow"
-        });
-        const data = await res.json();
-        if (data.status === "success" && data.dataUrl) {
-          imgEl.src = data.dataUrl;
-          titleEl.textContent = filename || "Bukti Foto";
-        } else {
-          titleEl.textContent = "Gagal memuat preview foto";
-        }
-      } catch (err) {
-        titleEl.textContent = "Gagal memuat preview foto";
-      }
-    }
-
-    function closePhotoModal() {
-      document.getElementById("photoModal").classList.add("hidden");
-      document.getElementById("modalPhotoImg").src = "";
-    }
-
-    function resetInputFormToDefault() {
-      const savedGuru = localStorage.getItem("capps_last_guru") || "";
-      const form = document.getElementById("formPelanggaran");
-      if (form) form.reset();
-
-      // Kembalikan tanggal ke hari ini
-      const today = new Date().toISOString().split("T")[0];
-      document.getElementById("inputTanggal").value = today;
-
-      // Pertahankan Guru terakhir yang diingat, kosongkan Kelas, Siswa, Kategori, dan Jenis Pelanggaran
-      const selGuru = document.getElementById("inputGuru");
-      if (savedGuru && [...selGuru.options].some(o => o.value === savedGuru)) {
-        selGuru.value = savedGuru;
-      } else {
-        selGuru.value = "";
-      }
-
-      clearQuickSearchSiswa();
-      const badgeAkum = document.getElementById("siswaAkumulasiBadge");
-      if (badgeAkum) badgeAkum.classList.add("hidden");
-
-      document.getElementById("inputKelas").value = "";
-
-      const selSiswa = document.getElementById("inputSiswa");
-      selSiswa.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
-      selSiswa.disabled = true;
-
-      document.getElementById("inputKategori").value = "";
-
-      const selJenis = document.getElementById("inputJenis");
-      selJenis.innerHTML = '<option value="">-- Pilih Kategori Terlebih Dahulu --</option>';
-      selJenis.disabled = true;
-
-      // Reset badge poin & hapus foto preview
-      document.getElementById("badgePoinPreview").textContent = "+0 Poin";
-      clearImage();
-
-      // Gulir halaman kembali ke paling atas seakan halaman baru dimuat
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function closeSuccessModal() {
-      document.getElementById("successModal").classList.add("hidden");
-      resetInputFormToDefault();
-    }
-
-    function showToast(msg, type = "success") {
-      const toast = document.getElementById("toast");
-      toast.textContent = msg;
-      toast.className = `fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-2xl border transition-all duration-300 ${
-        type === "error"
-          ? "bg-rose-950/95 text-rose-200 border-rose-500/50"
-          : "bg-emerald-950/95 text-emerald-200 border-emerald-500/50"
-      }`;
-      toast.classList.remove("hidden");
-      setTimeout(() => toast.classList.add("hidden"), 3500);
-    }
-  </script>
-</body>
-</html>
+    function drawChart
