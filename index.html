@@ -701,7 +701,20 @@
         </div>
         <div>
           <label class="block text-[11px] font-semibold text-slate-300 mb-1">Password</label>
-          <input type="password" id="adminPasswordInput" required placeholder="Masukkan password admin" class="w-full rounded-xl px-3.5 py-2.5 text-xs input-cyber" />
+          <div class="relative">
+            <input type="password" id="adminPasswordInput" required placeholder="Masukkan password admin" class="w-full rounded-xl pl-3.5 pr-10 py-2.5 text-xs input-cyber" />
+            <button type="button" onclick="toggleAdminPasswordVisibility()" aria-label="Tampilkan atau sembunyikan password" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-cyan-400 transition">
+              <!-- Ikon Mata Terbuka (Password tersembunyi) -->
+              <svg id="iconEyeOpen" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              <!-- Ikon Mata Dicoret (Password terlihat) -->
+              <svg id="iconEyeClosed" class="hidden w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="flex items-center gap-2 pt-2">
           <button type="button" onclick="closeAdminLoginModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">
@@ -818,6 +831,32 @@
     // =========================================================================
     // MANAJEMEN LOGIN & HAK AKSES ADMIN
     // =========================================================================
+    function toggleAdminPasswordVisibility() {
+      const passInput = document.getElementById("adminPasswordInput");
+      const iconOpen = document.getElementById("iconEyeOpen");
+      const iconClosed = document.getElementById("iconEyeClosed");
+      if (!passInput) return;
+
+      if (passInput.type === "password") {
+        passInput.type = "text";
+        if (iconOpen) iconOpen.classList.add("hidden");
+        if (iconClosed) iconClosed.classList.remove("hidden");
+      } else {
+        passInput.type = "password";
+        if (iconOpen) iconOpen.classList.remove("hidden");
+        if (iconClosed) iconClosed.classList.add("hidden");
+      }
+    }
+
+    function resetAdminPasswordVisibility() {
+      const passInput = document.getElementById("adminPasswordInput");
+      const iconOpen = document.getElementById("iconEyeOpen");
+      const iconClosed = document.getElementById("iconEyeClosed");
+      if (passInput) passInput.type = "password";
+      if (iconOpen) iconOpen.classList.remove("hidden");
+      if (iconClosed) iconClosed.classList.add("hidden");
+    }
+
     function handleAdminAuthClick() {
       if (isAdminLoggedIn) {
         openCustomConfirm(
@@ -829,6 +868,7 @@
       } else {
         document.getElementById("adminUsernameInput").value = "";
         document.getElementById("adminPasswordInput").value = "";
+        resetAdminPasswordVisibility();
         document.getElementById("adminLoginModal").classList.remove("hidden");
         setTimeout(() => document.getElementById("adminUsernameInput").focus(), 100);
       }
@@ -844,6 +884,7 @@
     }
 
     function closeAdminLoginModal() {
+      resetAdminPasswordVisibility();
       document.getElementById("adminLoginModal").classList.add("hidden");
     }
 
