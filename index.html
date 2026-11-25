@@ -2462,7 +2462,33 @@
     // =========================================================================
     // EXPORT EXCEL (.XLSX) & PDF VIA APPS SCRIPT (UNDUHAN HTTPS ANDROID)
     // =========================================================================
-    async function unduhViaAppsScript(fileName, mimeType, base64Data) {
+   async function unduhViaAppsScript(fileName, mimeType, base64Data) {
+      // 1. Unduh langsung dari browser (tidak membutuhkan izin DriveApp)
+      try {
+        const byteChars = atob(base64Data);
+        const byteNumbers = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) {
+          byteNumbers[i] = byteChars.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        const blobUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+
+        showToast(`File ${fileName} berhasil diunduh!`, "success");
+        return;
+      } catch (localErr) {
+        console.warn("Fallback ke unduhan via Apps Script:", localErr);
+      }
+
+      // 2. Cadangan via Apps Script jika WebView memblokir Blob URL
       showToast("Menyiapkan file untuk diunduh...", "success");
       try {
         const res = await fetch(SCRIPT_URL, {
