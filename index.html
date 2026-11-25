@@ -2246,7 +2246,6 @@
         }
 
         if (result.status === "success") {
-          // Perbarui juga state lokal & cache langsung
           const idxGlobal = allLaporan.findIndex(item => String(item.ID_Transaksi) === String(idTransaksi));
           if (idxGlobal >= 0) {
             allLaporan[idxGlobal] = {
@@ -2362,7 +2361,8 @@
 
       const dailyMap = {};
       filteredLaporan.forEach(r => {
-        const tglKey = r.TanggalNormalized || r.Tanggal; dailyMap[tglKey] = (dailyMap[tglKey] || 0) + 1;
+        const tglKey = r.TanggalNormalized || r.Tanggal;
+        dailyMap[tglKey] = (dailyMap[tglKey] || 0) + 1;
       });
       const sortedDays = Object.keys(dailyMap).sort().slice(-10);
       drawChart("harian", "chartHarian", "bar", sortedDays, sortedDays.map(d => dailyMap[d]),
@@ -2460,7 +2460,7 @@
     }
 
     // =========================================================================
-    // EXPORT EXCEL (.XLSX) & PDF VIA APPS SCRIPT (UNDUHAN HTTPS WEB APP)
+    // EXPORT EXCEL (.XLSX) & PDF VIA APPS SCRIPT (UNDUHAN HTTPS LANGSUNG)
     // =========================================================================
     async function unduhViaAppsScript(fileName, mimeType, base64Data) {
       showToast("Menyiapkan file unduhan...", "success");
@@ -2483,37 +2483,6 @@
           window.location.href = result.downloadUrl;
         } else {
           showToast(result.message || "Gagal membuat file unduhan.", "error");
-        }
-      } catch (err) {
-        showToast("Koneksi gagal saat mengekspor file.", "error");
-      }
-    }
-
-      // 2. Untuk APK Android / WebView: gunakan URL HTTPS Web App publik (lolos DownloadManager & bebas login Google)
-      showToast("Menyiapkan file unduhan...", "success");
-      try {
-        const res = await fetch(SCRIPT_URL, {
-          method: "POST",
-          redirect: "follow",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
-          body: JSON.stringify({
-            action: "exportFile",
-            fileName: fileName,
-            mimeType: mimeType,
-            base64Data: base64Data
-          })
-        });
-        const result = await res.json();
-        if (result.status === "success" && result.downloadUrl) {
-          const tokenMatch = String(result.downloadUrl).match(/token=([^&]+)/);
-          const finalHttpsUrl = tokenMatch
-            ? `${SCRIPT_URL}?action=download&token=${tokenMatch[1]}`
-            : result.downloadUrl;
-          window.location.href = finalHttpsUrl;
-        } else {
-          showToast(result.message || "Gagal menyiapkan file unduhan.", "error");
         }
       } catch (err) {
         showToast("Koneksi gagal saat mengekspor file.", "error");
@@ -2758,11 +2727,9 @@
       const form = document.getElementById("formPelanggaran");
       if (form) form.reset();
 
-      // Kembalikan tanggal ke hari ini
       const today = new Date().toISOString().split("T")[0];
       document.getElementById("inputTanggal").value = today;
 
-      // Pertahankan Guru terakhir yang diingat, kosongkan Kelas, Siswa, Kategori, dan Jenis Pelanggaran
       const selGuru = document.getElementById("inputGuru");
       if (savedGuru && [...selGuru.options].some(o => o.value === savedGuru)) {
         selGuru.value = savedGuru;
@@ -2786,11 +2753,9 @@
       selJenis.innerHTML = '<option value="">-- Pilih Kategori Terlebih Dahulu --</option>';
       selJenis.disabled = true;
 
-      // Reset badge poin & hapus foto preview
       document.getElementById("badgePoinPreview").textContent = "+0 Poin";
       clearImage();
 
-      // Gulir halaman kembali ke paling atas seakan halaman baru dimuat
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
