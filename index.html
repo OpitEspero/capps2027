@@ -2493,7 +2493,7 @@
         }
       }
 
-      // 2. Untuk APK Android / WebView: gunakan tautan HTTPS Google Drive agar kompatibel dengan DownloadManager Android
+      // 2. Untuk APK Android / WebView: kirim ke Apps Script (jalur Drive + cadangan dataUri)
       showToast("Menyiapkan file unduhan untuk Android...", "success");
       try {
         const res = await fetch(SCRIPT_URL, {
@@ -2512,6 +2512,13 @@
         const result = await res.json();
         if (result.status === "success" && result.downloadUrl) {
           window.location.href = result.downloadUrl;
+        } else if (result.status === "success" && result.dataUri) {
+          const a = document.createElement("a");
+          a.href = result.dataUri;
+          a.download = result.fileName || fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
         } else {
           showToast(result.message || "Gagal menyiapkan file unduhan.", "error");
         }
