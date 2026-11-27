@@ -398,7 +398,9 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Rincian Data Terfilter</h3>
-            <p class="text-xs text-slate-500">Menampilkan <span id="labelJumlahBaris" class="text-indigo-600 font-bold">0</span> catatan pelanggaran</p>
+            <p class="text-xs text-slate-500">
+              Menampilkan <span id="labelRentangBaris" class="text-slate-700 font-bold">0–0</span> dari <span id="labelJumlahBaris" class="text-indigo-600 font-bold">0</span> catatan pelanggaran
+            </p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
@@ -450,6 +452,22 @@
               </tr>
             </tfoot>
           </table>
+        </div>
+
+        <!-- KONTROL PAGINATION (10 DATA PER HALAMAN) -->
+        <div id="laporanPaginationBar" class="hidden mt-3.5 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+          <span id="laporanPageInfo" class="text-slate-500 font-medium">Halaman 1 dari 1 (10 data / halaman)</span>
+          <div class="flex items-center gap-1.5">
+            <button type="button" id="btnPrevLaporanPage" onclick="changeLaporanPage(-1)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 font-bold border border-slate-200 transition active:scale-95">
+              ‹ Sebelumnya
+            </button>
+            <span id="laporanPageBadge" class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 font-mono font-bold">
+              1 / 1
+            </span>
+            <button type="button" id="btnNextLaporanPage" onclick="changeLaporanPage(1)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 font-bold border border-slate-200 transition active:scale-95">
+              Berikutnya ›
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -778,6 +796,8 @@
     let masterAturan = [];
     let allLaporan = [];
     let filteredLaporan = [];
+    let currentLaporanPage = 1;
+    const LAPORAN_ITEMS_PER_PAGE = 10;
     let compressedBase64 = "";
     let currentMasterSubTab = "aturan";
     let pendingConfirmCallback = null;
@@ -2089,6 +2109,7 @@
       });
 
       filteredLaporan.sort((a, b) => String(b.TanggalNormalized).localeCompare(String(a.TanggalNormalized)));
+      currentLaporanPage = 1;
 
       const btnRekapSiswa = document.getElementById("btnCetakRekapSiswa");
       if (btnRekapSiswa) {
@@ -2109,16 +2130,44 @@
       applyFilters();
     }
 
+    function changeLaporanPage(delta) {
+      const totalPages = Math.max(1, Math.ceil(filteredLaporan.length / LAPORAN_ITEMS_PER_PAGE));
+      const targetPage = currentLaporanPage + delta;
+      if (targetPage < 1 || targetPage > totalPages) return;
+      currentLaporanPage = targetPage;
+      updateSummaryAndTable();
+    }
+
     function updateSummaryAndTable() {
       const totalKasus = filteredLaporan.length;
       const totalPoin = filteredLaporan.reduce((sum, row) => sum + (Number(row.Poin) || 0), 0);
       const rataPoin = totalKasus > 0 ? (totalPoin / totalKasus).toFixed(1) : 0;
 
+      const totalPages = Math.max(1, Math.ceil(totalKasus / LAPORAN_ITEMS_PER_PAGE));
+      if (currentLaporanPage > totalPages) currentLaporanPage = totalPages;
+      if (currentLaporanPage < 1) currentLaporanPage = 1;
+
+      const startIndex = (currentLaporanPage - 1) * LAPORAN_ITEMS_PER_PAGE;
+      const endIndex = Math.min(startIndex + LAPORAN_ITEMS_PER_PAGE, totalKasus);
+      const pageRows = filteredLaporan.slice(startIndex, endIndex);
+
       document.getElementById("statTotalKasus").textContent = totalKasus;
       document.getElementById("statTotalPoin").textContent = totalPoin;
       document.getElementById("statRataPoin").textContent = rataPoin;
       document.getElementById("labelJumlahBaris").textContent = totalKasus;
+      document.getElementById("labelRentangBaris").textContent = totalKasus > 0 ? `${startIndex + 1}–${endIndex}` : "0–0";
       document.getElementById("tableFooterTotalPoin").textContent = totalPoin;
+
+      const paginationBar = document.getElementById("laporanPaginationBar");
+      if (totalKasus > LAPORAN_ITEMS_PER_PAGE) {
+        paginationBar.classList.remove("hidden");
+        document.getElementById("laporanPageInfo").textContent = `Halaman ${currentLaporanPage} dari ${totalPages} (${LAPORAN_ITEMS_PER_PAGE} data / halaman)`;
+        document.getElementById("laporanPageBadge").textContent = `${currentLaporanPage} / ${totalPages}`;
+        document.getElementById("btnPrevLaporanPage").disabled = currentLaporanPage <= 1;
+        document.getElementById("btnNextLaporanPage").disabled = currentLaporanPage >= totalPages;
+      } else {
+        paginationBar.classList.add("hidden");
+      }
 
       const tbody = document.getElementById("tableBody");
       if (totalKasus === 0) {
@@ -2126,7 +2175,8 @@
         return;
       }
 
-      tbody.innerHTML = filteredLaporan.map((row, idx) => {
+      tbody.innerHTML = pageRows.map((row, localIdx) => {
+        const globalFilteredIdx = startIndex + localIdx;
         const hasPhoto = row.Link_Foto_Drive && row.Link_Foto_Drive !== "-";
         const badgeColor = row.Kategori === "Kelakuan"
           ? "bg-rose-50 text-rose-700 border-rose-200"
@@ -2149,7 +2199,7 @@
             <td class="p-3 text-center font-mono font-extrabold text-rose-600">+${row.Poin}</td>
             <td class="p-3 text-center whitespace-nowrap space-x-1">
               ${isAdminLoggedIn
-                ? `<button onclick="openEditLaporanModal(${idx})" class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 text-[11px] font-bold">Edit</button>`
+                ? `<button onclick="openEditLaporanModal(${globalFilteredIdx})" class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 text-[11px] font-bold">Edit</button>`
                 : ``}
               ${hasPhoto
                 ? `<button onclick="openPhotoModal('${row.Link_Foto_Drive}', '${row.Nama_File_Foto}')" class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 text-[11px] font-bold">Foto</button>`
