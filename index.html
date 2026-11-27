@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f8fafc" />
   <title>CaPPS — Catatan Poin Pelanggaran Siswa</title>
-  <link rel="icon" href="capps_logo.png" type="image/png" />
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -106,8 +105,10 @@
   <header class="sticky top-0 z-40 header-glass px-4 py-3">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm overflow-hidden shrink-0">
-          <img src="capps_logo.png" alt="Logo CaPPS" class="w-full h-full object-contain p-0.5" />
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-emerald-500 flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
         </div>
         <div>
           <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900">
@@ -2465,4 +2466,367 @@
             data: data.length ? data : [0],
             backgroundColor: Array.isArray(colors) ? colors : (type === "bar" ? colors + "cc" : colors + "26"),
             borderColor: Array.isArray(colors) ? "#ffffff" : colors,
-            border
+            borderWidth: 2,
+            borderRadius: type === "bar" ? 6 : 0,
+            pointRadius: type === "line" ? 4 : 0,
+            pointHoverRadius: type === "line" ? 6 : 0,
+            pointBackgroundColor: Array.isArray(colors) ? "#4f46e5" : colors,
+            tension: 0.35,
+            fill: type === "line"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: type === "doughnut",
+              position: "bottom",
+              labels: { boxWidth: 12, color: "#334155", font: { size: 11, weight: "600" } }
+            }
+          },
+          scales: type === "doughnut" ? {} : {
+            x: { grid: { color: "rgba(148, 163, 184, 0.16)" }, ticks: { color: "#475569", font: { size: 10 } } },
+            y: { beginAtZero: true, grid: { color: "rgba(148, 163, 184, 0.16)" }, ticks: { color: "#475569", precision: 0, font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    function normalizeYearMonth(rawDate) {
+      if (!rawDate) return "";
+      const str = String(rawDate).trim();
+      const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})/);
+      if (isoMatch) {
+        return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}`;
+      }
+      const parsed = new Date(str);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, "0");
+        return `${y}-${m}`;
+      }
+      return "";
+    }
+
+    function getWeekInfo(date) {
+      const start = new Date(date.getFullYear(), 0, 1);
+      const oneDay = 1000 * 60 * 60 * 24;
+      const dayOfYear = Math.floor((date - start) / oneDay);
+      const week = Math.ceil((dayOfYear + start.getDay() + 1) / 7);
+      const weekStr = String(week).padStart(2, "0");
+      const year = date.getFullYear();
+      return {
+        sortKey: `${year}-W${weekStr}`,
+        label: `Mgg ${weekStr} (${year})`
+      };
+    }
+
+    async function unduhViaAppsScript(fileName, mimeType, base64Data) {
+      showToast("Menyiapkan file unduhan...", "success");
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          redirect: "follow",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action: "exportFile",
+            fileName: fileName,
+            mimeType: mimeType,
+            base64Data: base64Data
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success" && result.downloadUrl) {
+          window.location.href = result.downloadUrl;
+        } else {
+          showToast(result.message || "Gagal membuat file unduhan.", "error");
+        }
+      } catch (err) {
+        showToast("Koneksi gagal saat mengekspor file.", "error");
+      }
+    }
+
+    function exportRekapSiswaPDF() {
+      const siswaDipilih = document.getElementById("filterSiswa").value;
+      if (!siswaDipilih) {
+        showToast("Pilih satu nama siswa pada filter terlebih dahulu.", "error");
+        return;
+      }
+      if (filteredLaporan.length === 0) {
+        showToast("Tidak ada riwayat pelanggaran untuk siswa yang dipilih.", "error");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("p", "mm", "a4");
+      const kelasFilter = document.getElementById("filterKelas").value || filteredLaporan[0]?.Kelas || "-";
+      const masterInfo = masterSiswa.find(s => String(s.Nama_Siswa).trim() === siswaDipilih && (!kelasFilter || String(s.Kelas).trim() === kelasFilter));
+      const nisSiswa = masterInfo?.NIS || "-";
+      const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
+
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.text("REKAPITULASI CATATAN PELANGGARAN TATA TERTIB SISWA", 105, 16, { align: "center" });
+
+      doc.setFontSize(9.5);
+      doc.setFont("helvetica", "normal");
+      doc.text("Sistem Catatan Poin Pelanggaran Siswa (CaPPS Digital)", 105, 21.5, { align: "center" });
+
+      doc.setLineWidth(0.5);
+      doc.line(14, 25, 196, 25);
+
+      doc.setFontSize(9.5);
+      doc.setFont("helvetica", "bold");
+      doc.text("Nama Siswa", 14, 32);
+      doc.setFont("helvetica", "normal");
+      doc.text(`: ${siswaDipilih}`, 48, 32);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("NIS / NISN", 14, 37.5);
+      doc.setFont("helvetica", "normal");
+      doc.text(`: ${nisSiswa}`, 48, 37.5);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Kelas", 125, 32);
+      doc.setFont("helvetica", "normal");
+      doc.text(`: ${kelasFilter}`, 152, 32);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Akumulasi Poin", 125, 37.5);
+      doc.setFont("helvetica", "bold");
+      doc.text(`: ${totalPoin} Poin (${filteredLaporan.length} Kasus)`, 152, 37.5);
+
+      const tableBody = filteredLaporan.map((r, i) => [
+        i + 1,
+        r.TanggalNormalized || r.Tanggal,
+        r.Kategori,
+        r.Jenis_Pelanggaran,
+        r.Nama_Guru,
+        `+${r.Poin}`
+      ]);
+
+      doc.autoTable({
+        startY: 43,
+        head: [["No", "Tanggal", "Kategori", "Uraian Pelanggaran", "Guru Pencatat", "Poin"]],
+        body: tableBody,
+        foot: [["", "", "", "", "TOTAL AKUMULASI POIN", `${totalPoin} Poin`]],
+        theme: "grid",
+        styles: { fontSize: 8.5, cellPadding: 2.3 },
+        headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255] },
+        footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: "bold" },
+        columnStyles: {
+          0: { halign: "center", cellWidth: 10 },
+          1: { cellWidth: 24 },
+          5: { halign: "center", cellWidth: 18 }
+        }
+      });
+
+      const finalY = (doc.lastAutoTable?.finalY || 120) + 12;
+      const tglCetak = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Dicetak pada: ${tglCetak}`, 140, finalY);
+
+      doc.text("Mengetahui,", 25, finalY + 7);
+      doc.text("Kepala Sekolah / Waka Kesiswaan", 25, finalY + 12);
+      doc.text("( .............................................. )", 25, finalY + 32);
+
+      doc.text("Guru Bimbingan Konseling (BK)", 140, finalY + 12);
+      doc.text("( .............................................. )", 140, finalY + 32);
+
+      const safeFileSiswa = siswaDipilih.replace(/[^a-zA-Z0-9]/g, "_");
+      const fileName = `Rekap_Siswa_${safeFileSiswa}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      const pdfBase64 = doc.output("datauristring").split(",")[1];
+      unduhViaAppsScript(fileName, "application/pdf", pdfBase64);
+    }
+
+    function exportToExcel() {
+      if (filteredLaporan.length === 0) {
+        showToast("Tidak ada data untuk diekspor.", "error");
+        return;
+      }
+
+      const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
+      const rows = filteredLaporan.map((r, i) => ({
+        "No": i + 1,
+        "Tanggal": r.TanggalNormalized || r.Tanggal,
+        "Nama Siswa": r.Nama_Siswa,
+        "Kelas": r.Kelas,
+        "Kategori": r.Kategori,
+        "Jenis Pelanggaran": r.Jenis_Pelanggaran,
+        "Poin": Number(r.Poin) || 0,
+        "Guru Pencatat": r.Nama_Guru,
+        "File Bukti": r.Nama_File_Foto
+      }));
+
+      rows.push({
+        "No": "",
+        "Tanggal": "",
+        "Nama Siswa": "",
+        "Kelas": "",
+        "Kategori": "",
+        "Jenis Pelanggaran": "TOTAL AKUMULASI POIN",
+        "Poin": totalPoin,
+        "Guru Pencatat": "",
+        "File Bukti": ""
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan_CaPPS");
+
+      const fileName = `Laporan_CaPPS_${new Date().toISOString().slice(0,10)}.xlsx`;
+      const base64Str = XLSX.write(workbook, { bookType: "xlsx", type: "base64" });
+      const mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+      unduhViaAppsScript(fileName, mimeType, base64Str);
+    }
+
+    function exportToPDF() {
+      if (filteredLaporan.length === 0) {
+        showToast("Tidak ada data untuk diekspor.", "error");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("p", "mm", "a4");
+      const totalPoin = filteredLaporan.reduce((sum, r) => sum + (Number(r.Poin) || 0), 0);
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("LAPORAN CATATAN PELANGGARAN SISWA (CaPPS)", 14, 16);
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      const kelasFilter = document.getElementById("filterKelas").value || "Semua Kelas";
+      const siswaFilter = document.getElementById("filterSiswa").value || "Semua Siswa";
+      doc.text(`Filter Kelas: ${kelasFilter} | Filter Siswa: ${siswaFilter} | Total Kasus: ${filteredLaporan.length}`, 14, 22);
+
+      const tableBody = filteredLaporan.map((r, i) => [
+        i + 1,
+        r.TanggalNormalized || r.Tanggal,
+        r.Nama_Siswa,
+        r.Kelas,
+        r.Kategori,
+        r.Jenis_Pelanggaran,
+        r.Poin
+      ]);
+
+      doc.autoTable({
+        startY: 27,
+        head: [["No", "Tanggal", "Nama Siswa", "Kelas", "Kategori", "Jenis Pelanggaran", "Poin"]],
+        body: tableBody,
+        foot: [["", "", "", "", "", "TOTAL POIN HASIL FILTER", totalPoin]],
+        theme: "grid",
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255] },
+        footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: "bold" }
+      });
+
+      const fileName = `Laporan_CaPPS_${new Date().toISOString().slice(0,10)}.pdf`;
+      const pdfBase64 = doc.output("datauristring").split(",")[1];
+      const mimeType = "application/pdf";
+
+      unduhViaAppsScript(fileName, mimeType, pdfBase64);
+    }
+
+    async function openPhotoModal(url, filename) {
+      const modal = document.getElementById("photoModal");
+      const titleEl = document.getElementById("modalPhotoTitle");
+      const imgEl = document.getElementById("modalPhotoImg");
+      const linkEl = document.getElementById("modalPhotoLink");
+
+      titleEl.textContent = (filename || "Bukti Foto") + " (Memuat...)";
+      imgEl.src = "";
+      linkEl.href = url;
+      modal.classList.remove("hidden");
+
+      const matchId = String(url).match(/[-\w]{25,}/);
+      if (!matchId) {
+        imgEl.src = url;
+        titleEl.textContent = filename || "Bukti Foto";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=getPhoto&id=${matchId[0]}`, {
+          method: "GET",
+          redirect: "follow"
+        });
+        const data = await res.json();
+        if (data.status === "success" && data.dataUrl) {
+          imgEl.src = data.dataUrl;
+          titleEl.textContent = filename || "Bukti Foto";
+        } else {
+          titleEl.textContent = "Gagal memuat preview foto";
+        }
+      } catch (err) {
+        titleEl.textContent = "Gagal memuat preview foto";
+      }
+    }
+
+    function closePhotoModal() {
+      document.getElementById("photoModal").classList.add("hidden");
+      document.getElementById("modalPhotoImg").src = "";
+    }
+
+    function resetInputFormToDefault() {
+      const savedGuru = localStorage.getItem("capps_last_guru") || "";
+      const form = document.getElementById("formPelanggaran");
+      if (form) form.reset();
+
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("inputTanggal").value = today;
+
+      const selGuru = document.getElementById("inputGuru");
+      if (savedGuru && [...selGuru.options].some(o => o.value === savedGuru)) {
+        selGuru.value = savedGuru;
+      } else {
+        selGuru.value = "";
+      }
+
+      clearQuickSearchSiswa();
+      const badgeAkum = document.getElementById("siswaAkumulasiBadge");
+      if (badgeAkum) badgeAkum.classList.add("hidden");
+
+      document.getElementById("inputKelas").value = "";
+
+      const selSiswa = document.getElementById("inputSiswa");
+      selSiswa.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+      selSiswa.disabled = true;
+
+      document.getElementById("inputKategori").value = "";
+
+      const selJenis = document.getElementById("inputJenis");
+      selJenis.innerHTML = '<option value="">-- Pilih Kategori Terlebih Dahulu --</option>';
+      selJenis.disabled = true;
+
+      document.getElementById("badgePoinPreview").textContent = "+0 Poin";
+      clearImage();
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function closeSuccessModal() {
+      document.getElementById("successModal").classList.add("hidden");
+      resetInputFormToDefault();
+    }
+
+    function showToast(msg, type = "success") {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.className = `fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl text-xs font-bold shadow-xl border transition-all duration-300 ${
+        type === "error"
+          ? "bg-rose-50 text-rose-800 border-rose-300"
+          : "bg-emerald-50 text-emerald-800 border-emerald-300"
+      }`;
+      toast.classList.remove("hidden");
+      setTimeout(() => toast.classList.add("hidden"), 3500);
+    }
+  </script>
+</body>
+</html>
